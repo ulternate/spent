@@ -12,7 +12,9 @@ import com.ulternate.paycat.R;
 import com.ulternate.paycat.data.Transaction;
 
 import java.text.SimpleDateFormat;
+import java.util.Currency;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * RecyclerView adapter to show transactions in the RecyclerView.
@@ -60,9 +62,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         return new ViewHolder(v);
     }
 
-    // Replace the contents of a view with data from the transaction at that
-    // position in the dataset.
-
     /**
      * Replace the view contents with data from the Transaction at that position in the dataset.
      * @param holder: The ViewHolder.
@@ -70,7 +69,11 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
      */
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.transactionAmount.setText(String.valueOf(mTransactionsList.get(position).amount));
+        // Get the currency from the current Locale and prepend the symbol to the amount.
+        Currency currency = Currency.getInstance(Locale.getDefault());
+        String qualifiedAmount = currency.getSymbol() + String.valueOf(mTransactionsList.get(position).amount);
+
+        holder.transactionAmount.setText(qualifiedAmount);
         holder.transactionDate.setText(mSimpleDate.format(mTransactionsList.get(position).date));
         holder.transactionDescription.setText(mTransactionsList.get(position).description);
     }
