@@ -25,7 +25,7 @@ public abstract class AppDatabase extends RoomDatabase{
      * Get the AppDatabase as a Singleton.
      *
      * @param context: the Context from the activity/thread accessing the database.
-     * @return: an AppDatabase instance.
+     * @return an AppDatabase instance.
      */
     public static AppDatabase getAppDatabase(Context context) {
         if (instance == null) {

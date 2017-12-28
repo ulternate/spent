@@ -37,7 +37,7 @@ public class TransactionViewModel extends AndroidViewModel {
 
     /**
      * Get the list of all transactions.
-     * @return: A LiveData list of all transactions.
+     * @return A LiveData list of all transactions.
      */
     public LiveData<List<Transaction>> getTransactionsList() {
         return mTransactionsList;
@@ -78,7 +78,7 @@ public class TransactionViewModel extends AndroidViewModel {
         /**
          * Insert an array of transactions using the TransactionDao.
          * @param transactions: An array of Transactions.
-         * @return: null.
+         * @return null.
          */
         @Override
         protected Void doInBackground(Transaction... transactions) {
