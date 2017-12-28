@@ -26,8 +26,6 @@ import com.ulternate.paycat.data.TransactionViewModel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Main activity for the application.
@@ -36,9 +34,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
-
-    private static final String AMOUNT_PATTERN_REGEX = "\\$ ?(\\d+\\.\\d*)";
-    private static final Pattern AMOUNT_PATTERN = Pattern.compile(AMOUNT_PATTERN_REGEX);
 
     // Package name for this application.
     public static final String PACKAGE_NAME = "com.ulternate.paycat";
@@ -72,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
         mTransactionViewModel = ViewModelProviders.of(this).get(TransactionViewModel.class);
 
         // Get and observe the transactions list for changes.
-        mTransactionViewModel.getTransactionsList().observe(MainActivity.this, new Observer<List<Transaction>>() {
+        mTransactionViewModel.getTransactionsList().observe(MainActivity.this,
+                new Observer<List<Transaction>>() {
             @Override
             public void onChanged(@Nullable List<Transaction> transactions) {
                 mRecyclerViewAdapter.addTransactions(transactions);
@@ -107,27 +103,16 @@ public class MainActivity extends AppCompatActivity {
      *              payment application was received.
      */
     private void addPaymentTransactionFromNotification(Intent intent) {
-        // Get values from the intent.
-        String title = intent.getStringExtra("title");
-        String content = intent.getStringExtra("content");
-        Date date = new Date(intent.getLongExtra("date", System.currentTimeMillis()));
+        // Build and save the Transaction from the broadcast intent. The intent is sent only for
+        // valid captured transactions.
+        Transaction transaction = new Transaction(
+                intent.getFloatExtra("amount", (float) 0.0),
+                intent.getStringExtra("title"),
+                intent.getStringExtra("category"),
+                new Date(intent.getLongExtra("date", System.currentTimeMillis()))
+        );
 
-        // TODO handle categories and check if a transaction with the same date, title and content
-        // is in the database (i.e. don't duplicate).
-        if (!title.isEmpty() && !content.isEmpty()) {
-            // Parse the amount from the content.
-            // Only add a transaction if there is an amount in the notification.
-            Matcher matcher = AMOUNT_PATTERN.matcher(content);
-            if (matcher.find()) {
-                Transaction transaction = new Transaction(
-                        Float.parseFloat(matcher.group(1)),
-                        title,
-                        "Test Transaction",
-                        date
-                );
-                mTransactionViewModel.addTransaction(transaction);
-            }
-        }
+        mTransactionViewModel.addTransaction(transaction);
     }
 
     /**
