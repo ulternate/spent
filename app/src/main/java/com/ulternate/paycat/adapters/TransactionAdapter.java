@@ -40,6 +40,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
      * @param transactions: A list of Transaction objects.
      */
     public void addTransactions(List<Transaction> transactions) {
+        this.mTransactionsList.clear();
         this.mTransactionsList.addAll(transactions);
         notifyDataSetChanged();
     }
