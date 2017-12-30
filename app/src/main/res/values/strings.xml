@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Paycat</string>
+    <string name="service_label">Paycat Notification Service</string>
+
+    <string name="notification_listener_service">Notification Listener Service</string>
+    <string name="notification_listener_service_explanation">The notification listener service must be enabled to begin recording payments on this device.</string>
 </resources>
