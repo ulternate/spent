@@ -22,9 +22,9 @@ import com.ulternate.paycat.R;
 import com.ulternate.paycat.adapters.TransactionAdapter;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
+import com.ulternate.paycat.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -105,12 +105,7 @@ public class MainActivity extends AppCompatActivity {
     private void addPaymentTransactionFromNotification(Intent intent) {
         // Build and save the Transaction from the broadcast intent. The intent is sent only for
         // valid captured transactions.
-        Transaction transaction = new Transaction(
-                intent.getFloatExtra("amount", (float) 0.0),
-                intent.getStringExtra("title"),
-                intent.getStringExtra("category"),
-                new Date(intent.getLongExtra("date", System.currentTimeMillis()))
-        );
+        Transaction transaction = Utils.buildTransactionFromNotification(intent);
 
         mTransactionViewModel.addTransaction(transaction);
     }
