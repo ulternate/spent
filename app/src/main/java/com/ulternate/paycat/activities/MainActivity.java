@@ -2,12 +2,9 @@ package com.ulternate.paycat.activities;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
@@ -22,7 +19,6 @@ import com.ulternate.paycat.R;
 import com.ulternate.paycat.adapters.TransactionAdapter;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
-import com.ulternate.paycat.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
 
-    // Package name for this application.
-    public static final String PACKAGE_NAME = "com.ulternate.paycat";
-
-    private TransactionViewModel mTransactionViewModel;
     private TransactionAdapter mRecyclerViewAdapter;
-
-    private PaymentNotificationBroadcastReceiver mBroadCastReceiver;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +54,8 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mRecyclerViewAdapter);
 
         // Set the TransactionViewModel.
-        mTransactionViewModel = ViewModelProviders.of(this).get(TransactionViewModel.class);
+        TransactionViewModel mTransactionViewModel = ViewModelProviders.of(this).get(
+                TransactionViewModel.class);
 
         // Get and observe the transactions list for changes.
         mTransactionViewModel.getTransactionsList().observe(MainActivity.this,
@@ -79,35 +70,6 @@ public class MainActivity extends AppCompatActivity {
         if (!isNotificationServiceEnabled()) {
             buildNotificationServiceAlertDialog().show();
         }
-
-        // Register a BroadcastReceiver to handle notifications received by the listener.
-        mBroadCastReceiver = new PaymentNotificationBroadcastReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(PACKAGE_NAME);
-        registerReceiver(mBroadCastReceiver, intentFilter);
-    }
-
-    /**
-     * Unregister the BroadcastReceiver when destroying the application activity.
-     */
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(mBroadCastReceiver);
-    }
-
-    /**
-     * Add Transaction based on information captured from a notification using the Notification
-     * Listener.
-     * @param intent: The Intent sent by the Notification Listener when a notification from a
-     *              payment application was received.
-     */
-    private void addPaymentTransactionFromNotification(Intent intent) {
-        // Build and save the Transaction from the broadcast intent. The intent is sent only for
-        // valid captured transactions.
-        Transaction transaction = Utils.buildTransactionFromNotification(intent);
-
-        mTransactionViewModel.addTransaction(transaction);
     }
 
     /**
@@ -160,21 +122,5 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
         return(alertDialogBuilder.create());
-    }
-
-    /**
-     * BroadcastReceiver for intents sent by the TransactionNotificationListener service.
-     */
-    public class PaymentNotificationBroadcastReceiver extends BroadcastReceiver {
-
-        /**
-         * Record the transaction information, adding it to the database.
-         * @param context: Context.
-         * @param intent: The Intent sent by the TransactionNotificationListener.
-         */
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            addPaymentTransactionFromNotification(intent);
-        }
     }
 }

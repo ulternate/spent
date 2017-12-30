@@ -1,14 +1,18 @@
 package com.ulternate.paycat.services;
 
 import android.app.Notification;
+import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
-import com.ulternate.paycat.activities.MainActivity;
+import com.ulternate.paycat.data.AppDatabase;
+import com.ulternate.paycat.data.Transaction;
 
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,8 +26,6 @@ public class TransactionNotificationListener extends NotificationListenerService
     // come from GMS after a transaction.
     private static final String ANDROID_PAY_PACKAGE_NAME = "com.google.android.apps.walletnfcrel";
     private static final String ANDROID_GMS_PACKAGE_NAME = "com.google.android.gms";
-    // TODO remove pushover after testing AndroidPay.
-    private static final String PUSHOVER_PACKAGE_NAME = "net.superblock.pushover";
 
     // Regular Expression for matching the transaction amount.
     private static final String AMOUNT_PATTERN_REGEX = "\\$ ?(\\d+\\.\\d*)";
@@ -43,8 +45,7 @@ public class TransactionNotificationListener extends NotificationListenerService
         switch (sbn.getPackageName()) {
             case ANDROID_PAY_PACKAGE_NAME:
             case ANDROID_GMS_PACKAGE_NAME:
-            case PUSHOVER_PACKAGE_NAME:
-                buildAndSendAndroidPayTransactionBroadcast(sbn);
+                saveTransactionNotification(sbn);
         }
     }
 
@@ -59,14 +60,13 @@ public class TransactionNotificationListener extends NotificationListenerService
     }
 
     /**
-     * Build and broadcast an intent containing the transaction information for Android Pay
+     * Create and save in the database a Transaction object from the StatusBarNotification.
      * @param sbn: The StatusBarNotification.
      *
-     * The intent is only broadcast if it is a transaction notification (as Android Pay
-     * could send multiple notifications, as well as notifications coming via GMS).
+     * The Transaction object is only created if the notification is a valid payment notification.
      */
-    private void buildAndSendAndroidPayTransactionBroadcast(StatusBarNotification sbn) {
-        // Get the Notification from the StatusBarNotification, so the content can be retreived.
+    private void saveTransactionNotification(StatusBarNotification sbn) {
+        // Get the Notification from the StatusBarNotification, so the content can be retrieved.
         Notification notification = sbn.getNotification();
 
         if (notification != null) {
@@ -74,23 +74,49 @@ public class TransactionNotificationListener extends NotificationListenerService
             String title = extras.getString(Notification.EXTRA_TITLE);
             String content = extras.getString(Notification.EXTRA_TEXT);
 
-            // Try and get an amount from the content, if there is a match then build and broadcast
-            // an intent to the Application for recording.
+            // Try and get an amount from the content, matching against a pattern for currency.
             if (title != null && content != null) {
                 Matcher matcher = AMOUNT_PATTERN.matcher(content);
 
-                // If a match is found, then build and broadcast the intent.
+                // If a match is found, then create and save the Transaction object in the database.
                 if (matcher.find()) {
-                    Intent intent = new Intent(MainActivity.PACKAGE_NAME);
-
-                    intent.putExtra("title", title);
-                    intent.putExtra("amount", Float.parseFloat(matcher.group(1)));
-                    intent.putExtra("category", DEFAULT_ANDROID_PAY_CATEGORY);
-                    intent.putExtra("date", sbn.getPostTime());
-
-                    sendBroadcast(intent);
+                    Transaction transaction = new Transaction(
+                            Float.parseFloat(matcher.group(1)),
+                            title,
+                            DEFAULT_ANDROID_PAY_CATEGORY,
+                            new Date(sbn.getPostTime())
+                    );
+                    new AddTransactionAsyncTask(getApplicationContext()).execute(transaction);
                 }
             }
+        }
+    }
+
+    /**
+     * Private class to insert a Transaction object into the database asynchronously.
+     */
+    private static class AddTransactionAsyncTask extends AsyncTask<Transaction, Void, Void> {
+
+        // Instance of the app database.
+        private AppDatabase mAppDatabase;
+
+        /**
+         * Construct the AsyncTask and get the AppDatabase instance.
+         * @param context: The context from the service.
+         */
+        AddTransactionAsyncTask(Context context) {
+            mAppDatabase = AppDatabase.getAppDatabase(context);
+        }
+
+        /**
+         * Insert the transaction into the database in the background.
+         * @param transactions: An array of transactions.
+         * @return null.
+         */
+        @Override
+        protected Void doInBackground(Transaction... transactions) {
+            mAppDatabase.transactionDao().insertTransaction(transactions[0]);
+            return null;
         }
     }
 }
