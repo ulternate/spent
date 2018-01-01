@@ -7,6 +7,7 @@
     <!-- Resources for Transaction Detail view and editing. -->
     <string name="date">Date</string>
     <string name="date_error">Please select a date using the date and time selectors</string>
+    <string name="date_hint">@string/date</string>
     <string name="amount">Amount</string>
     <string name="amount_error">Please enter a transaction amount</string>
     <string name="amount_hint">@string/amount</string>

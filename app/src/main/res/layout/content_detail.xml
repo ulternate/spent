@@ -108,20 +108,30 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
         android:contentDescription="@string/date"
         android:scaleType="centerInside"
         android:tint="@color/colorPrimaryDark"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/transactionDescriptionLayout"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
         app:srcCompat="@drawable/ic_event_black_24dp"/>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/date_hint"
+        android:text="@string/date_hint"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@+id/transactionDescriptionLayout"
+        app:layout_constraintTop_toBottomOf="@+id/transactionDescriptionLayout"/>
 
     <TextView
         android:id="@+id/transactionDate"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
         android:background="@android:color/transparent"
         android:ems="10"
         android:focusable="false"
@@ -131,8 +141,8 @@
         android:textIsSelectable="false"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/dateImage"
-        app:layout_constraintTop_toTopOf="@+id/dateImage"/>
+        app:layout_constraintStart_toStartOf="@+id/textView"
+        app:layout_constraintTop_toBottomOf="@+id/textView"/>
 
     <ImageView
         android:id="@+id/imageView"
@@ -152,16 +162,15 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:entries="@array/default_categories"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/imageView"
+        app:layout_constraintStart_toStartOf="@+id/transactionDate"
         app:layout_constraintTop_toBottomOf="@+id/dateImage"
-        app:ms_enableFloatingLabel="true"
-        app:ms_hint="@string/category_hint"
-        app:ms_floatingLabelText="@string/category_hint"
         app:ms_alignLabels="false"
+        app:ms_enableFloatingLabel="true"
+        app:ms_floatingLabelText="@string/category_hint"
+        app:ms_hint="@string/category_hint"
         tools:clickable="false"/>
 
     <android.support.design.widget.TextInputLayout
@@ -169,10 +178,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
+        android:layout_marginStart="18dp"
         android:layout_marginTop="8dp"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/transactionCategorySpinner"
+        app:layout_constraintStart_toEndOf="@+id/imageView"
         app:layout_constraintTop_toBottomOf="@+id/transactionCategorySpinner">
 
         <android.support.design.widget.TextInputEditText
