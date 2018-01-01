@@ -1,33 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.ulternate.paycat.activities.DetailActivity"
-    tools:showIn="@layout/activity_detail">
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="match_parent"
+                                             android:background="@color/cardview_light_background"
+                                             app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                                             tools:context="com.ulternate.paycat.activities.DetailActivity"
+                                             tools:showIn="@layout/activity_detail">
 
-    <EditText
-        android:id="@+id/transactionAmount"
-        android:layout_width="wrap_content"
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/transactionHeader"
+        android:layout_width="match_parent"
+        android:layout_height="175dp"
+        android:background="@color/colorPrimary"
+        android:maxHeight="175dp">
+
+        <EditText
+            android:id="@+id/transactionAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:cursorVisible="false"
+            android:ems="10"
+            android:focusable="false"
+            android:hint="@string/amount_hint"
+            android:inputType="none"
+            android:selectAllOnFocus="false"
+            android:singleLine="false"
+            android:textAlignment="center"
+            android:textColor="@android:color/white"
+            android:textColorLink="@color/colorPrimaryLight"
+            android:textIsSelectable="false"
+            android:textSize="48sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+    </android.support.constraint.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/transactionDetailsLabel"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:background="@android:color/transparent"
-        android:cursorVisible="false"
-        android:ems="10"
-        android:focusable="false"
-        android:hint="@string/amount_hint"
-        android:inputType="none"
-        android:selectAllOnFocus="false"
-        android:singleLine="false"
-        android:textAlignment="center"
-        android:textIsSelectable="false"
-        android:textSize="48sp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:labelFor="@+id/transactionDescription"
+        android:text="@string/details"
+        android:textColor="@color/colorTextDark"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@+id/transactionHeader"/>
 
     <EditText
         android:id="@+id/transactionDescription"
@@ -45,6 +71,7 @@
         android:maxLines="2"
         android:minLines="1"
         android:textAlignment="viewStart"
+        android:textColor="@color/colorTextDark"
         android:textIsSelectable="false"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -62,11 +89,28 @@
         android:focusable="false"
         android:hint="@string/date_hint"
         android:inputType="none"
+        android:textColor="@color/colorTextDark"
         android:textIsSelectable="false"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/dateImage"
         app:layout_constraintTop_toTopOf="@+id/dateImage"/>
+
+    <TextView
+        android:id="@+id/transactionCategoryLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:labelFor="@+id/transactionCategoryOther"
+        android:text="@string/category"
+        android:textAlignment="viewStart"
+        android:textColor="@color/colorTextDark"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dateImage"/>
 
     <Spinner
         android:id="@+id/transactionCategorySpinner"
@@ -96,41 +140,13 @@
         android:paddingRight="8dp"
         android:singleLine="true"
         android:textAlignment="viewStart"
+        android:textColor="@color/colorTextDark"
         android:textSize="14sp"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/transactionCategorySpinner"/>
-
-    <TextView
-        android:id="@+id/transactionCategoryLabel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
-        android:labelFor="@+id/transactionCategoryOther"
-        android:text="@string/category"
-        android:textAlignment="viewStart"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dateImage"/>
-
-    <TextView
-        android:id="@+id/transactionDetailsLabel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
-        android:labelFor="@+id/transactionDescription"
-        android:text="@string/details"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/transactionAmount"/>
 
     <ImageView
         android:id="@+id/toImage"
@@ -140,7 +156,7 @@
         android:layout_marginTop="16dp"
         android:contentDescription="@string/to"
         android:scaleType="centerInside"
-        android:tint="@color/colorAccent"
+        android:tint="@color/colorPrimaryDark"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/transactionDetailsLabel"
         app:srcCompat="@drawable/ic_send_black_24dp"/>
@@ -153,7 +169,7 @@
         android:layout_marginTop="16dp"
         android:contentDescription="@string/date"
         android:scaleType="centerInside"
-        android:tint="@color/colorAccent"
+        android:tint="@color/colorPrimaryDark"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/transactionDescription"
         app:srcCompat="@drawable/ic_event_black_24dp"/>
