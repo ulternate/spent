@@ -80,17 +80,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * OnClickListener to start the DetailActivity when a Transaction is clicked on.
+     */
     private TransactionOnClickListener mTransactionOnClickListener = new TransactionOnClickListener() {
         @Override
         public void onClick(View view, int position) {
             Intent detailIntent = new Intent(getApplicationContext(), DetailActivity.class);
 
+            // Send the Transaction object to the activity.
             Transaction clickedTransaction = mRecyclerViewAdapter.getTransaction(position);
-
-            detailIntent.putExtra("amount", clickedTransaction.amount);
-            detailIntent.putExtra("description", clickedTransaction.description);
-            detailIntent.putExtra("category", clickedTransaction.category);
-            detailIntent.putExtra("date", TRANSACTION_DATE_FORMAT.format(clickedTransaction.date));
+            detailIntent.putExtra("transaction", clickedTransaction);
 
             startActivity(detailIntent);
         }

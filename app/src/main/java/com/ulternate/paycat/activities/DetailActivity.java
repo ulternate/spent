@@ -1,8 +1,10 @@
 package com.ulternate.paycat.activities;
 
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -19,12 +21,16 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.ulternate.paycat.R;
+import com.ulternate.paycat.data.AppDatabase;
+import com.ulternate.paycat.data.Transaction;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,17 +40,31 @@ import java.util.Objects;
 public class DetailActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener,
         TimePickerDialog.OnTimeSetListener {
 
-    // The following widgets enable editing of the transaction.
+    // The Transaction being viewed/edited.
+    private Transaction mTransaction;
+
+    private FloatingActionButton mFloatingActionButton;
+
+    // The following widgets enable editing of the Transaction.
     private EditText mAmount;
     private EditText mDescription;
     private EditText mCategoryOther;
     private TextView mDate;
     private Spinner mCategory;
 
+    // Fields for widgets and widget values.
     private List<EditText> mTextWidgets;
     private List<String> mCategories = new ArrayList<>();
+    private Float mAmountVal;
+    private String mDescriptionVal;
+    private String mCategorySelection;
+    private String mCategoryOtherVal;
+    private Date mDateVal;
 
+    // Fields for editing status.
     private boolean mEditingEnabled = false;
+    private String mEditingErrorMsg;
+    private EditText mFieldWithError;
 
     // Fields for the date and time pickers.
     private FragmentManager mFragmentManager;
@@ -79,35 +99,18 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         }
 
         // Set the initial values of all widgets.
-        setInitialValues(getIntent());
+        Intent mCallingIntent = getIntent();
+        mTransaction = (Transaction) mCallingIntent.getSerializableExtra("transaction");
+        if (mTransaction != null) {
+            setInitialValues(mTransaction);
+        }
 
         // Disable editing initially.
         disableEditing();
 
-        final FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mEditingEnabled) {
-                    // TODO handle the saving of the transaction.
-                    // Disable the editing functionality and change the icon to the edit icon.
-                    disableEditing();
-                    fab.setImageResource(R.drawable.ic_edit_black_24dp);
-
-                    // Show a message that the changes have been saved.
-                    showSnackBar(view, getResources().getString(R.string.changes_saved),
-                            Snackbar.LENGTH_SHORT, "Changes Saved");
-                } else {
-                    // Enable editing and change the icon to the save icon.
-                    enableEditing();
-                    fab.setImageResource(R.drawable.ic_save_black_24dp);
-
-                    // Show a message mentioning that editing is enabled.
-                    showSnackBar(view, getResources().getString(R.string.editing_in_progress),
-                            Snackbar.LENGTH_SHORT, "Editing Enabled");
-                }
-            }
-        });
+        // Get the FloatingActionButton and set the OnClickListener.
+        mFloatingActionButton = findViewById(R.id.fab);
+        mFloatingActionButton.setOnClickListener(mFabOnClickListener);
 
         // The following are used by the date and time pickers.
         mFragmentManager = getFragmentManager();
@@ -167,16 +170,16 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
     /**
      * Set the values for all widgets from the Transaction information sent in the calling Intent.
-     * @param intent: The intent used to start the activity, containing the Transaction information.
+     * @param transaction: The transaction sent by the calling Intent.
      */
-    private void setInitialValues(Intent intent) {
-        mAmount.setText(String.valueOf(intent.getFloatExtra("amount", (float) 0.0)));
-        mDescription.setText(intent.getStringExtra("description"));
-        mDate.setText(intent.getStringExtra("date"));
+    private void setInitialValues(Transaction transaction) {
+        mAmount.setText(String.valueOf(transaction.amount));
+        mDescription.setText(transaction.description);
+        mDate.setText(MainActivity.TRANSACTION_DATE_FORMAT.format(transaction.date));
 
-        // Set the category spinner, filling in the Category "Other" EditText if the category can't
-        // be found in the list of values in the spinner.
-        String initialCategory = intent.getStringExtra("category");
+        // Set the category spinner, filling in the Category "Other" EditText if the category
+        // can't be found in the list of values in the spinner.
+        String initialCategory = transaction.category;
         if (mCategories.contains(initialCategory)) {
             mCategory.setSelection(mCategories.indexOf(initialCategory));
         } else {
@@ -186,6 +189,77 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             mCategoryOther.setVisibility(View.VISIBLE);
             mCategoryOther.setText(initialCategory);
         }
+    }
+
+    /**
+     * Check if the edited values are valid.
+     * @return true if all checks are valid, else false.
+     */
+    private boolean isEditValid() {
+        // Get the entered values.
+        try {
+            mAmountVal = Float.parseFloat(mAmount.getText().toString());
+        } catch (NumberFormatException e) {
+            mAmountVal = (float) 0.0;
+        }
+        mDescriptionVal = mDescription.getText().toString();
+        mCategorySelection = mCategory.getSelectedItem().toString();
+        mCategoryOtherVal = mCategoryOther.getText().toString();
+
+        // The Transaction amount will be 0.0 if the EditText was empty when the user hit save.
+        if (mAmountVal == 0.0) {
+            mEditingErrorMsg = getResources().getString(R.string.amount_error);
+            mFieldWithError = mAmount;
+            return false;
+        }
+
+        // Description field cannot be empty.
+        if (mDescriptionVal.isEmpty()) {
+            mEditingErrorMsg = getResources().getString(R.string.description_error);
+            mFieldWithError = mDescription;
+            return false;
+        }
+
+        // Category Other field cannot be empty if the selected category is "Other". Note, the
+        // spinner doesn't allow empty selections.
+        if (Objects.equals(mCategorySelection, getResources().getString(R.string.other))) {
+            if (mCategoryOtherVal.isEmpty()) {
+                mEditingErrorMsg = getResources().getString(R.string.category_other_error);
+                mFieldWithError = mCategoryOther;
+                return false;
+            }
+        }
+
+        // Try and parse the date, if it fails, then it's not a valid selection.
+        try {
+            mDateVal = MainActivity.TRANSACTION_DATE_FORMAT.parse(mDate.getText().toString());
+        } catch (ParseException e) {
+            e.printStackTrace();
+            mEditingErrorMsg = getResources().getString(R.string.date_error);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Update the Transaction object with the latest valid values. This is called when the
+     * FloatingActionButton is clicked and all fields are valid.
+     */
+    private void updateTransactionValues() {
+        mTransaction.amount = mAmountVal;
+        mTransaction.description = mDescriptionVal;
+
+        if (Objects.equals(mCategorySelection, getResources().getString(R.string.other))) {
+            mTransaction.category = mCategoryOtherVal;
+        } else {
+            mTransaction.category = mCategorySelection;
+        }
+
+        mTransaction.date = mDateVal;
+
+        // Update the transaction in the database.
+        new UpdateTransactionAsyncTask(getApplicationContext()).execute(mTransaction);
     }
 
     /**
@@ -229,7 +303,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         }
 
         // Set the input types for the fields.
-        mAmount.setInputType(InputType.TYPE_CLASS_NUMBER);
+        mAmount.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
         mDescription.setInputType(InputType.TYPE_TEXT_FLAG_CAP_WORDS|InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         mCategoryOther.setInputType(InputType.TYPE_TEXT_FLAG_CAP_WORDS);
 
@@ -262,6 +336,58 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     private void showSnackBar(View v, String msg, int length, String tag) {
         Snackbar.make(v, msg, length).setAction(tag, null).show();
     }
+
+    /**
+     * OnClickListener for the FloatingActionButton.
+     *
+     * Handles changing the FAB icon and content description based on the action next to be
+     * performed (i.e. change to "Save" when editing).
+     *
+     * Clicking when editing is enabled will save the changes, checking for errors and updating the
+     * transaction if it is valid.
+     *
+     * Clicking when editing is disabled will unlock the fields for editing.
+     */
+    private View.OnClickListener mFabOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mEditingEnabled) {
+                // Check if the edit was valid, if it is, save the changes.
+                if (isEditValid()) {
+                    // Disable the editing functionality and change the icon to the edit icon.
+                    disableEditing();
+                    mFloatingActionButton.setImageResource(R.drawable.ic_edit_black_24dp);
+                    mFloatingActionButton.setContentDescription(getResources().getString(R.string.edit));
+
+                    // Update the Transaction values.
+                    updateTransactionValues();
+
+                    // Show a message that the changes have been saved.
+                    showSnackBar(v, getResources().getString(R.string.changes_saved),
+                            Snackbar.LENGTH_SHORT, "Changes Saved");
+                } else {
+                    // The edit was not valid, show a message and reset all values to original.
+                    showSnackBar(v, mEditingErrorMsg, Snackbar.LENGTH_SHORT, "Edit Error");
+                    setInitialValues(mTransaction);
+
+                    // For the EditText field with the error, set the cursor to the end after
+                    // resetting the value.
+                    if (mFieldWithError != null) {
+                        mFieldWithError.setSelection(mFieldWithError.getText().length());
+                    }
+                }
+            } else {
+                // Enable editing and change the icon to the save icon.
+                enableEditing();
+                mFloatingActionButton.setImageResource(R.drawable.ic_save_black_24dp);
+                mFloatingActionButton.setContentDescription(getResources().getString(R.string.save));
+
+                // Show a message mentioning that editing is enabled.
+                showSnackBar(v, getResources().getString(R.string.editing_in_progress),
+                        Snackbar.LENGTH_SHORT, "Editing Enabled");
+            }
+        }
+    };
 
     /**
      * OnClickListener that warns the user that the editing is disabled until the edit button is
@@ -355,4 +481,27 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             // Do nothing.
         }
     };
+
+    /**
+     * Private class to update a Transaction object in the database asynchronously.
+     */
+    private static class UpdateTransactionAsyncTask extends AsyncTask<Transaction, Void, Void> {
+
+        // Instance of the app database.
+        private AppDatabase mAppDatabase;
+
+        /**
+         * Construct the AsyncTask and get the AppDatabase instance.
+         * @param context: The context from the service.
+         */
+        UpdateTransactionAsyncTask(Context context) {
+            mAppDatabase = AppDatabase.getAppDatabase(context);
+        }
+
+        @Override
+        protected Void doInBackground(Transaction... transactions) {
+            mAppDatabase.transactionDao().updateTransaction(transactions[0]);
+            return null;
+        }
+    }
 }
