@@ -16,7 +16,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
@@ -66,8 +65,6 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
     // Fields for editing status.
     private boolean mEditingEnabled = false;
-    private String mEditingErrorMsg;
-    private EditText mFieldWithError;
 
     // Fields for the date and time pickers.
     private FragmentManager mFragmentManager;
@@ -198,10 +195,12 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     }
 
     /**
-     * Check if the edited values are valid.
+     * Validate the fields prior to saving the values.
+     * The values are stored so we can save them to the Transaction object if they are valid.
+     * If they are not valid, then an error is added to the field that failed validation.
      * @return true if all checks are valid, else false.
      */
-    private boolean isEditValid() {
+    private boolean areChangesValid() {
         // Get the entered values.
         try {
             mAmountVal = Float.parseFloat(mAmount.getText().toString());
@@ -211,18 +210,19 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         mDescriptionVal = mDescription.getText().toString();
         mCategoryOtherVal = mCategoryOther.getText().toString();
 
+        // Any field that is not valid will set this to false.
+        boolean isValid = true;
+
         // The Transaction amount will be 0.0 if the EditText was empty when the user hit save.
         if (mAmountVal == 0.0) {
-            mEditingErrorMsg = getResources().getString(R.string.amount_error);
-            mFieldWithError = mAmount;
-            return false;
+            mAmount.setError(getResources().getString(R.string.amount_error));
+            isValid = false;
         }
 
         // Description field cannot be empty.
         if (mDescriptionVal.isEmpty()) {
-            mEditingErrorMsg = getResources().getString(R.string.description_error);
-            mFieldWithError = mDescription;
-            return false;
+            mDescription.setError(getResources().getString(R.string.description_error));
+            isValid = false;
         }
 
         // Category spinner has a hint that could be selected, this returns a NullPointerException
@@ -230,17 +230,17 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         try {
             mCategorySelection = mCategory.getSelectedItem().toString();
         } catch (NullPointerException e) {
-            mEditingErrorMsg = getResources().getString(R.string.category_error);
-            return false;
+            mCategory.setError(getResources().getString(R.string.category_error));
+            mCategorySelection = "";
+            isValid = false;
         }
 
         // Category Other field cannot be empty if the selected category is "Other". Note, the
         // spinner doesn't allow empty selections.
         if (Objects.equals(mCategorySelection, getResources().getString(R.string.category_other))) {
             if (mCategoryOtherVal.isEmpty()) {
-                mEditingErrorMsg = getResources().getString(R.string.category_other_error);
-                mFieldWithError = mCategoryOther;
-                return false;
+                mCategoryOther.setError(getResources().getString(R.string.category_other_error));
+                isValid = false;
             }
         }
 
@@ -249,11 +249,11 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             mDateVal = MainActivity.TRANSACTION_DATE_FORMAT.parse(mDate.getText().toString());
         } catch (ParseException e) {
             e.printStackTrace();
-            mEditingErrorMsg = getResources().getString(R.string.date_error);
-            return false;
+            mDate.setError(getResources().getString(R.string.date_error));
+            isValid = false;
         }
 
-        return true;
+        return isValid;
     }
 
     /**
@@ -366,7 +366,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         public void onClick(View v) {
             if (mEditingEnabled) {
                 // Check if the edit was valid, if it is, save the changes.
-                if (isEditValid()) {
+                if (areChangesValid()) {
                     // Disable the editing functionality and change the icon to the edit icon.
                     disableEditing();
                     mFloatingActionButton.setImageResource(R.drawable.ic_edit_black_24dp);
@@ -378,16 +378,6 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
                     // Show a message that the changes have been saved.
                     showSnackBar(v, getResources().getString(R.string.changes_saved),
                             Snackbar.LENGTH_SHORT, "Changes Saved");
-                } else {
-                    // The edit was not valid, show a message and reset all values to original.
-                    showSnackBar(v, mEditingErrorMsg, Snackbar.LENGTH_SHORT, "Edit Error");
-                    setInitialValues(mTransaction);
-
-                    // For the EditText field with the error, set the cursor to the end after
-                    // resetting the value.
-                    if (mFieldWithError != null) {
-                        mFieldWithError.setSelection(mFieldWithError.getText().length());
-                    }
                 }
             } else {
                 // Enable editing and change the icon to the save icon.
