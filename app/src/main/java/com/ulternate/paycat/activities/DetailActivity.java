@@ -3,11 +3,12 @@ package com.ulternate.paycat.activities;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
@@ -46,14 +47,15 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     private FloatingActionButton mFloatingActionButton;
 
     // The following widgets enable editing of the Transaction.
-    private EditText mAmount;
-    private EditText mDescription;
-    private EditText mCategoryOther;
+    private TextInputEditText mAmount;
+    private TextInputEditText mDescription;
+    private TextInputEditText mCategoryOther;
+    private TextInputLayout mCategoryOtherLayout;
     private TextView mDate;
     private Spinner mCategory;
 
     // Fields for widgets and widget values.
-    private List<EditText> mTextWidgets;
+    private List<TextInputEditText> mTextWidgets;
     private List<String> mCategories = new ArrayList<>();
     private Float mAmountVal;
     private String mDescriptionVal;
@@ -88,6 +90,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         mDate = findViewById(R.id.transactionDate);
         mCategory = findViewById(R.id.transactionCategorySpinner);
         mCategoryOther = findViewById(R.id.transactionCategoryOther);
+        mCategoryOtherLayout = findViewById(R.id.transactionCategoryOtherLayout);
 
         // Group similar widgets.
         mTextWidgets = Arrays.asList(mAmount, mDescription, mCategoryOther);
@@ -267,9 +270,8 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
      */
     private void disableEditing() {
         // Disable editing of each EditText widget.
-        for (EditText editText: mTextWidgets) {
+        for (TextInputEditText editText: mTextWidgets) {
             editText.setFocusable(false);
-            editText.setBackgroundColor(Color.TRANSPARENT);
             editText.setTextIsSelectable(false);
             editText.setCursorVisible(false);
             editText.setInputType(InputType.TYPE_NULL);
@@ -295,7 +297,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
      */
     private void enableEditing() {
         // Enable editing of the EditText widgets.
-        for (EditText editText: mTextWidgets) {
+        for (TextInputEditText editText: mTextWidgets) {
             editText.setFocusable(true);
             editText.setTextIsSelectable(true);
             editText.setCursorVisible(true);
@@ -465,13 +467,12 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             // Get the selected item from the parents adapter.
             String selectedItem = parent.getAdapter().getItem(position).toString();
 
-            // If the selected item is not "Other" then hide the other field.
-            // Otherwise, make the other field visible and focus on it.
+            // If the selected item is not "Other" then hide the other layout.
+            // Otherwise, make the other field visible and focus on the input field within it.
             if (!Objects.equals(selectedItem, getResources().getString(R.string.other))) {
-                mCategoryOther.setVisibility(View.INVISIBLE);
+                mCategoryOtherLayout.setVisibility(View.INVISIBLE);
             } else {
-                mCategoryOther.setVisibility(View.VISIBLE);
-                mCategoryOther.setHint(R.string.other_hint);
+                mCategoryOtherLayout.setVisibility(View.VISIBLE);
                 mCategoryOther.requestFocus();
             }
         }

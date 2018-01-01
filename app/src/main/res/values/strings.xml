@@ -1,24 +1,21 @@
 <resources>
     <!-- Main application resources. -->
     <string name="app_name">Paycat</string>
-    <string name="service_label">Paycat Notification Service</string>
     <string name="notification_listener_service">Notification Listener Service</string>
     <string name="notification_listener_service_explanation">The notification listener service must be enabled to begin recording payments on this device.</string>
 
     <!-- Resources for Transaction Detail view and editing. -->
-    <string name="to">To</string>
-    <string name="to_hint">Enter the transaction details</string>
     <string name="date">Date</string>
     <string name="date_error">Please select a date using the date and time selectors</string>
-    <string name="date_hint">Enter Date (YYYY-MM-DD HH:MM)</string>
     <string name="amount">Amount</string>
     <string name="amount_error">Please enter a transaction amount</string>
-    <string name="amount_hint">Enter amount</string>
-    <string name="details">Details</string>
+    <string name="amount_hint">@string/amount</string>
+    <string name="transaction_details">Transaction Details</string>
     <string name="description">Description</string>
     <string name="description_error">Please enter a description for the transaction</string>
+    <string name="description_hint">Recipient</string>
     <string name="other">Other</string>
-    <string name="other_hint">Enter custom category</string>
+    <string name="other_hint">Custom Category</string>
     <string name="category">Category</string>
     <string name="category_hint">Select category</string>
     <string name="category_other_error">Please enter a custom category for the transaction</string>
