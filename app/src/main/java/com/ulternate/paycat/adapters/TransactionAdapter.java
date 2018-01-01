@@ -1,6 +1,5 @@
 package com.ulternate.paycat.adapters;
 
-import android.annotation.SuppressLint;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -9,9 +8,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.ulternate.paycat.R;
+import com.ulternate.paycat.activities.MainActivity;
 import com.ulternate.paycat.data.Transaction;
 
-import java.text.SimpleDateFormat;
 import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
@@ -25,16 +24,17 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     // Dataset for the Adapter.
     private List<Transaction> mTransactionsList;
 
-    // Date form used to format Date objects as desired.
-    @SuppressLint("SimpleDateFormat")
-    private SimpleDateFormat mSimpleDate = new SimpleDateFormat("yyyy-MM-dd H:mm a");
+    // Listener to handle item clicks.
+    private TransactionOnClickListener mListener;
 
     /**
      * Constructor to set the dataset for the Adapter.
      * @param transactions: A list of Transaction objects.
+     * @param listener: A TransactionOnClickListener.
      */
-    public TransactionAdapter(List<Transaction> transactions) {
+    public TransactionAdapter(List<Transaction> transactions, TransactionOnClickListener listener) {
         this.mTransactionsList = transactions;
+        this.mListener = listener;
     }
 
     /**
@@ -59,7 +59,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         CardView v = (CardView) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.transaction_item, parent, false);
 
-        return new ViewHolder(v);
+        return new ViewHolder(v, mListener);
     }
 
     /**
@@ -74,7 +74,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         String qualifiedAmount = currency.getSymbol() + String.valueOf(mTransactionsList.get(position).amount);
 
         holder.transactionAmount.setText(qualifiedAmount);
-        holder.transactionDate.setText(mSimpleDate.format(mTransactionsList.get(position).date));
+        holder.transactionDate.setText(MainActivity.TRANSACTION_DATE_FORMAT.format(mTransactionsList.get(position).date));
         holder.transactionDescription.setText(mTransactionsList.get(position).description);
     }
 
@@ -88,22 +88,50 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     }
 
     /**
+     * Get the Transaction at the specified position in the list.
+     * @param position: Int representing the position in the transactions list.
+     * @return a Transaction object from the transaction list at that position.
+     */
+    public Transaction getTransaction(int position) {
+        return mTransactionsList.get(position);
+    }
+
+    /**
      * Construct a ViewHolder to provide reference to the views for each data item.
      *
      * A Transaction item has an amount, date and description TextView.
      */
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        private TransactionOnClickListener mListener;
 
         TextView transactionAmount;
         TextView transactionDate;
         TextView transactionDescription;
 
-        ViewHolder(View itemView) {
+        /**
+         * Constructor for the ViewHolder.
+         * @param itemView: The View that has been inflated by the adapter.
+         * @param listener: The OnClickListener for the view.
+         */
+        ViewHolder(View itemView, TransactionOnClickListener listener) {
             super(itemView);
+            mListener = listener;
 
             this.transactionAmount = itemView.findViewById(R.id.transactionAmount);
             this.transactionDate = itemView.findViewById(R.id.transactionDate);
             this.transactionDescription = itemView.findViewById(R.id.transactionDescription);
+
+            itemView.setOnClickListener(this);
+        }
+
+        /**
+         * Handle the onClick action on the view.
+         * @param v: The View that was clicked.
+         */
+        @Override
+        public void onClick(View v) {
+            mListener.onClick(v, getAdapterPosition());
         }
     }
 }

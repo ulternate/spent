@@ -1,5 +1,6 @@
 package com.ulternate.paycat.activities;
 
+import android.annotation.SuppressLint;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
@@ -14,12 +15,15 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.view.View;
 
 import com.ulternate.paycat.R;
 import com.ulternate.paycat.adapters.TransactionAdapter;
+import com.ulternate.paycat.adapters.TransactionOnClickListener;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
 
     private TransactionAdapter mRecyclerViewAdapter;
+
+    // Date form used to format Date objects as desired.
+    @SuppressLint("SimpleDateFormat")
+    public static final SimpleDateFormat TRANSACTION_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd H:mm a");
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // Specify the adapter for the RecyclerView.
-        mRecyclerViewAdapter = new TransactionAdapter(new ArrayList<Transaction>());
+        mRecyclerViewAdapter = new TransactionAdapter(new ArrayList<Transaction>(), mTransactionOnClickListener);
         mRecyclerView.setAdapter(mRecyclerViewAdapter);
 
         // Set the TransactionViewModel.
@@ -71,6 +79,22 @@ public class MainActivity extends AppCompatActivity {
             buildNotificationServiceAlertDialog().show();
         }
     }
+
+    /**
+     * OnClickListener to start the DetailActivity when a Transaction is clicked on.
+     */
+    private TransactionOnClickListener mTransactionOnClickListener = new TransactionOnClickListener() {
+        @Override
+        public void onClick(View view, int position) {
+            Intent detailIntent = new Intent(getApplicationContext(), DetailActivity.class);
+
+            // Send the Transaction object to the activity.
+            Transaction clickedTransaction = mRecyclerViewAdapter.getTransaction(position);
+            detailIntent.putExtra("transaction", clickedTransaction);
+
+            startActivity(detailIntent);
+        }
+    };
 
     /**
      * Check if the notification service is enabled.

@@ -4,6 +4,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Date;
  */
 
 @Entity(tableName = "transactions")
-public class Transaction {
+public class Transaction implements Serializable{
 
     @PrimaryKey(autoGenerate = true)
     public int id;
