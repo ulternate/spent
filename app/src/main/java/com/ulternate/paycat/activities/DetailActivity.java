@@ -1,5 +1,6 @@
 package com.ulternate.paycat.activities;
 
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -15,30 +16,40 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
+import android.widget.TextView;
 
 import com.ulternate.paycat.R;
+import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
+import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * Detail activity for the application, showing information for a single transaction.
  */
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener,
+        TimePickerDialog.OnTimeSetListener {
 
     // The following widgets enable editing of the transaction.
     private EditText mAmount;
     private EditText mDescription;
-    private EditText mDate;
     private EditText mCategoryOther;
+    private TextView mDate;
     private Spinner mCategory;
 
     private List<EditText> mTextWidgets;
     private List<String> mCategories = new ArrayList<>();
 
     private boolean mEditingEnabled = false;
+
+    // Fields for the date and time pickers.
+    private FragmentManager mFragmentManager;
+    private Calendar mInitialCalendar;
+    private Calendar mChosenCalendar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +70,7 @@ public class DetailActivity extends AppCompatActivity {
         mCategoryOther = findViewById(R.id.transactionCategoryOther);
 
         // Group similar widgets.
-        mTextWidgets = Arrays.asList(mAmount, mDescription, mDate, mCategoryOther);
+        mTextWidgets = Arrays.asList(mAmount, mDescription, mCategoryOther);
 
         // Get all the categories from the spinner.
         SpinnerAdapter categorySpinnerAdapter = mCategory.getAdapter();
@@ -97,6 +108,61 @@ public class DetailActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // The following are used by the date and time pickers.
+        mFragmentManager = getFragmentManager();
+        mInitialCalendar = Calendar.getInstance();
+    }
+
+    /**
+     * Handle the Date selection from the DatePickerDialog.
+     *
+     * The TimePickerDialog is shown after a date is selected.
+     *
+     * Store the selected date in a Calendar object to be retrieved later to update the Transaction.
+     *
+     * @param view: The DatePickerDialog view.
+     * @param year: int, representing the selected year.
+     * @param monthOfYear: int, representing the selected month of the year (note, this is 0 based).
+     * @param dayOfMonth: int, representing the selected day of the month.
+     */
+    @Override
+    public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
+        // Set the date on the Calendar instance.
+        mChosenCalendar = Calendar.getInstance();
+        mChosenCalendar.set(Calendar.YEAR, year);
+        mChosenCalendar.set(Calendar.MONTH, monthOfYear);
+        mChosenCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+        // Build and show the TimePickerDialog.
+        TimePickerDialog timePickerDialog = TimePickerDialog.newInstance(
+                this,
+                mInitialCalendar.get(Calendar.HOUR_OF_DAY),
+                mInitialCalendar.get(Calendar.MINUTE),
+                false
+        );
+        timePickerDialog.show(mFragmentManager, "TimePickerDialog");
+    }
+
+    /**
+     * Handle the Time selection from the TimePickerDialog.
+     *
+     * Update the mDate TextView with the chosen Date and Time (stored in a Calendar instance).
+     *
+     * @param view: The TimePickerDialog view.
+     * @param hourOfDay: int, representing the selected hour of the day.
+     * @param minute: int, representing the selected minute.
+     * @param second: int, representing the selected second.
+     */
+    @Override
+    public void onTimeSet(TimePickerDialog view, int hourOfDay, int minute, int second) {
+        // Set the time on the Calendar instance.
+        mChosenCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        mChosenCalendar.set(Calendar.MINUTE, minute);
+        mChosenCalendar.set(Calendar.SECOND, second);
+
+        // Update the text field with the chosen date and time.
+        mDate.setText(MainActivity.TRANSACTION_DATE_FORMAT.format(mChosenCalendar.getTime()));
     }
 
     /**
@@ -133,11 +199,14 @@ public class DetailActivity extends AppCompatActivity {
             editText.setTextIsSelectable(false);
             editText.setCursorVisible(false);
             editText.setInputType(InputType.TYPE_NULL);
-            editText.setOnTouchListener(mDisabledOnTouchListener);
+            editText.setOnClickListener(mDisabledOnClickListener);
         }
 
         // Disable single line for the description widget. To show multi-line descriptions properly.
         mDescription.setSingleLine(false);
+
+        // Show a warning when the user clicks on the date field.
+        mDate.setOnClickListener(mDisabledOnClickListener);
 
         // Disable selections in the spinner widget.
         mCategory.setClickable(false);
@@ -156,14 +225,16 @@ public class DetailActivity extends AppCompatActivity {
             editText.setFocusable(true);
             editText.setTextIsSelectable(true);
             editText.setCursorVisible(true);
-            editText.setOnTouchListener(mEnabledOnTouchListener);
+            editText.setOnClickListener(mEnabledOnClickListener);
         }
 
         // Set the input types for the fields.
         mAmount.setInputType(InputType.TYPE_CLASS_NUMBER);
         mDescription.setInputType(InputType.TYPE_TEXT_FLAG_CAP_WORDS|InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        mDate.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         mCategoryOther.setInputType(InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+
+        // Set a different onClickListener for the date field to use the date and time pickers.
+        mDate.setOnClickListener(mEnabledDateOnClickListener);
 
         // Disable single line for the description widget and change the enter key action to enable
         // multi-line descriptions to be edited properly.
@@ -193,6 +264,18 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     /**
+     * OnClickListener that warns the user that the editing is disabled until the edit button is
+     * clicked. Assigned to the widgets when they are disabled.
+     */
+    private View.OnClickListener mDisabledOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            showSnackBar(v, getResources().getString(R.string.editing_locked_warning),
+                    Snackbar.LENGTH_SHORT, "Editing Disabled");
+        }
+    };
+
+    /**
      * OnTouchListener that warns the user that the editing is disabled until the edit button is
      * clicked. Assigned to the widgets when they are disabled.
      */
@@ -202,6 +285,35 @@ public class DetailActivity extends AppCompatActivity {
             showSnackBar(v, getResources().getString(R.string.editing_locked_warning),
                     Snackbar.LENGTH_SHORT, "Editing Disabled");
             return true;
+        }
+    };
+
+    /**
+     * OnClickListener used when editing is enabled to replace the mDisabledOnTouchListener so the
+     * user doesn't continue to be warned that editing is disabled.
+     */
+    private View.OnClickListener mEnabledOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // Do Nothing.
+        }
+    };
+
+    /**
+     * OnClickListener used by the Date TextView to show the DatePickerDialog.
+     */
+    private View.OnClickListener mEnabledDateOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // Build and show the DatePickerDialog, dismissing on selection.
+            DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(
+                    DetailActivity.this,
+                    mInitialCalendar.get(Calendar.YEAR),
+                    mInitialCalendar.get(Calendar.MONTH),
+                    mInitialCalendar.get(Calendar.DAY_OF_MONTH)
+            );
+            datePickerDialog.autoDismiss(true);
+            datePickerDialog.show(mFragmentManager, "DatePickerDialog");
         }
     };
 

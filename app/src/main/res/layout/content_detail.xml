@@ -51,14 +51,13 @@
         app:layout_constraintStart_toEndOf="@+id/toImage"
         app:layout_constraintTop_toBottomOf="@+id/transactionDetailsLabel"/>
 
-    <EditText
+    <TextView
         android:id="@+id/transactionDate"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:background="@android:color/transparent"
-        android:cursorVisible="false"
         android:ems="10"
         android:focusable="false"
         android:hint="@string/date_hint"
