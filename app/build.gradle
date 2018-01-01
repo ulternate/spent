@@ -31,6 +31,9 @@ dependencies {
     // DateTimePicker library: https://github.com/wdullaer/MaterialDateTimePicker
     compile 'com.wdullaer:materialdatetimepicker:3.5.0'
 
+    // MaterialSpinner library: https://github.com/ganfra/MaterialSpinner
+    compile 'com.github.ganfra:material-spinner:2.0.0'
+
     annotationProcessor "android.arch.lifecycle:compiler:1.0.0"
     annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
 

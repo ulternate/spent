@@ -15,7 +15,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="?attr/colorPrimaryDark"
             app:popupTheme="@style/AppTheme.PopupOverlay"/>
 
     </android.support.design.widget.AppBarLayout>
@@ -30,6 +30,7 @@
         android:layout_margin="@dimen/fab_margin"
         android:contentDescription="@string/edit"
         android:tint="@color/cardview_light_background"
+        app:backgroundTint="@color/colorAccent"
         app:srcCompat="@drawable/ic_edit_black_24dp"/>
 
 </android.support.design.widget.CoordinatorLayout>

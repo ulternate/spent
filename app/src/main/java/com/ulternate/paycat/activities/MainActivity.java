@@ -19,6 +19,7 @@ import android.view.View;
 
 import com.ulternate.paycat.R;
 import com.ulternate.paycat.adapters.TransactionAdapter;
+import com.ulternate.paycat.adapters.TransactionDividerItemDecoration;
 import com.ulternate.paycat.adapters.TransactionOnClickListener;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
@@ -54,12 +55,17 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setHasFixedSize(true);
 
         // Get the layout manager for the RecyclerView.
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // Specify the adapter for the RecyclerView.
         mRecyclerViewAdapter = new TransactionAdapter(new ArrayList<Transaction>(), mTransactionOnClickListener);
         mRecyclerView.setAdapter(mRecyclerViewAdapter);
+
+        // Assign a custom DividerItemDecoration to set the margins between list items in the
+        // RecyclerView.
+        TransactionDividerItemDecoration dividerItemDecoration = new TransactionDividerItemDecoration(this);
+        mRecyclerView.addItemDecoration(dividerItemDecoration);
 
         // Set the TransactionViewModel.
         TransactionViewModel mTransactionViewModel = ViewModelProviders.of(this).get(

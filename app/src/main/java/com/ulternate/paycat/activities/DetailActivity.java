@@ -3,11 +3,12 @@ package com.ulternate.paycat.activities;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
@@ -15,8 +16,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
-import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
@@ -34,6 +33,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import fr.ganfra.materialspinner.MaterialSpinner;
+
 /**
  * Detail activity for the application, showing information for a single transaction.
  */
@@ -46,14 +47,15 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     private FloatingActionButton mFloatingActionButton;
 
     // The following widgets enable editing of the Transaction.
-    private EditText mAmount;
-    private EditText mDescription;
-    private EditText mCategoryOther;
+    private TextInputEditText mAmount;
+    private TextInputEditText mDescription;
+    private TextInputEditText mCategoryOther;
+    private TextInputLayout mCategoryOtherLayout;
     private TextView mDate;
-    private Spinner mCategory;
+    private MaterialSpinner mCategory;
 
     // Fields for widgets and widget values.
-    private List<EditText> mTextWidgets;
+    private List<TextInputEditText> mTextWidgets;
     private List<String> mCategories = new ArrayList<>();
     private Float mAmountVal;
     private String mDescriptionVal;
@@ -63,8 +65,6 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
     // Fields for editing status.
     private boolean mEditingEnabled = false;
-    private String mEditingErrorMsg;
-    private EditText mFieldWithError;
 
     // Fields for the date and time pickers.
     private FragmentManager mFragmentManager;
@@ -88,6 +88,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         mDate = findViewById(R.id.transactionDate);
         mCategory = findViewById(R.id.transactionCategorySpinner);
         mCategoryOther = findViewById(R.id.transactionCategoryOther);
+        mCategoryOtherLayout = findViewById(R.id.transactionCategoryOtherLayout);
 
         // Group similar widgets.
         mTextWidgets = Arrays.asList(mAmount, mDescription, mCategoryOther);
@@ -180,22 +181,26 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         // Set the category spinner, filling in the Category "Other" EditText if the category
         // can't be found in the list of values in the spinner.
         String initialCategory = transaction.category;
+        // Note, MaterialSpinner prepends the hint to the list so we must add 1 to the position for
+        // selection to select the correct item.
         if (mCategories.contains(initialCategory)) {
-            mCategory.setSelection(mCategories.indexOf(initialCategory));
+            mCategory.setSelection(mCategories.indexOf(initialCategory) + 1);
         } else {
-            mCategory.setSelection(mCategories.indexOf(getResources().getString(R.string.other)));
+            mCategory.setSelection(mCategories.indexOf(getResources().getString(R.string.category_other)) + 1);
 
             // Make mCategoryOther visible and set the text.
-            mCategoryOther.setVisibility(View.VISIBLE);
+            mCategoryOtherLayout.setVisibility(View.VISIBLE);
             mCategoryOther.setText(initialCategory);
         }
     }
 
     /**
-     * Check if the edited values are valid.
+     * Validate the fields prior to saving the values.
+     * The values are stored so we can save them to the Transaction object if they are valid.
+     * If they are not valid, then an error is added to the field that failed validation.
      * @return true if all checks are valid, else false.
      */
-    private boolean isEditValid() {
+    private boolean areChangesValid() {
         // Get the entered values.
         try {
             mAmountVal = Float.parseFloat(mAmount.getText().toString());
@@ -203,30 +208,39 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             mAmountVal = (float) 0.0;
         }
         mDescriptionVal = mDescription.getText().toString();
-        mCategorySelection = mCategory.getSelectedItem().toString();
         mCategoryOtherVal = mCategoryOther.getText().toString();
+
+        // Any field that is not valid will set this to false.
+        boolean isValid = true;
 
         // The Transaction amount will be 0.0 if the EditText was empty when the user hit save.
         if (mAmountVal == 0.0) {
-            mEditingErrorMsg = getResources().getString(R.string.amount_error);
-            mFieldWithError = mAmount;
-            return false;
+            mAmount.setError(getResources().getString(R.string.amount_error));
+            isValid = false;
         }
 
         // Description field cannot be empty.
         if (mDescriptionVal.isEmpty()) {
-            mEditingErrorMsg = getResources().getString(R.string.description_error);
-            mFieldWithError = mDescription;
-            return false;
+            mDescription.setError(getResources().getString(R.string.description_error));
+            isValid = false;
+        }
+
+        // Category spinner has a hint that could be selected, this returns a NullPointerException
+        // with the MaterialSpinner library as the hint is at index -1.
+        try {
+            mCategorySelection = mCategory.getSelectedItem().toString();
+        } catch (NullPointerException e) {
+            mCategory.setError(getResources().getString(R.string.category_error));
+            mCategorySelection = "";
+            isValid = false;
         }
 
         // Category Other field cannot be empty if the selected category is "Other". Note, the
         // spinner doesn't allow empty selections.
-        if (Objects.equals(mCategorySelection, getResources().getString(R.string.other))) {
+        if (Objects.equals(mCategorySelection, getResources().getString(R.string.category_other))) {
             if (mCategoryOtherVal.isEmpty()) {
-                mEditingErrorMsg = getResources().getString(R.string.category_other_error);
-                mFieldWithError = mCategoryOther;
-                return false;
+                mCategoryOther.setError(getResources().getString(R.string.category_other_error));
+                isValid = false;
             }
         }
 
@@ -235,11 +249,11 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             mDateVal = MainActivity.TRANSACTION_DATE_FORMAT.parse(mDate.getText().toString());
         } catch (ParseException e) {
             e.printStackTrace();
-            mEditingErrorMsg = getResources().getString(R.string.date_error);
-            return false;
+            mDate.setError(getResources().getString(R.string.date_error));
+            isValid = false;
         }
 
-        return true;
+        return isValid;
     }
 
     /**
@@ -250,7 +264,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         mTransaction.amount = mAmountVal;
         mTransaction.description = mDescriptionVal;
 
-        if (Objects.equals(mCategorySelection, getResources().getString(R.string.other))) {
+        if (Objects.equals(mCategorySelection, getResources().getString(R.string.category_other))) {
             mTransaction.category = mCategoryOtherVal;
         } else {
             mTransaction.category = mCategorySelection;
@@ -267,9 +281,8 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
      */
     private void disableEditing() {
         // Disable editing of each EditText widget.
-        for (EditText editText: mTextWidgets) {
+        for (TextInputEditText editText: mTextWidgets) {
             editText.setFocusable(false);
-            editText.setBackgroundColor(Color.TRANSPARENT);
             editText.setTextIsSelectable(false);
             editText.setCursorVisible(false);
             editText.setInputType(InputType.TYPE_NULL);
@@ -295,7 +308,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
      */
     private void enableEditing() {
         // Enable editing of the EditText widgets.
-        for (EditText editText: mTextWidgets) {
+        for (TextInputEditText editText: mTextWidgets) {
             editText.setFocusable(true);
             editText.setTextIsSelectable(true);
             editText.setCursorVisible(true);
@@ -353,7 +366,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         public void onClick(View v) {
             if (mEditingEnabled) {
                 // Check if the edit was valid, if it is, save the changes.
-                if (isEditValid()) {
+                if (areChangesValid()) {
                     // Disable the editing functionality and change the icon to the edit icon.
                     disableEditing();
                     mFloatingActionButton.setImageResource(R.drawable.ic_edit_black_24dp);
@@ -365,16 +378,6 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
                     // Show a message that the changes have been saved.
                     showSnackBar(v, getResources().getString(R.string.changes_saved),
                             Snackbar.LENGTH_SHORT, "Changes Saved");
-                } else {
-                    // The edit was not valid, show a message and reset all values to original.
-                    showSnackBar(v, mEditingErrorMsg, Snackbar.LENGTH_SHORT, "Edit Error");
-                    setInitialValues(mTransaction);
-
-                    // For the EditText field with the error, set the cursor to the end after
-                    // resetting the value.
-                    if (mFieldWithError != null) {
-                        mFieldWithError.setSelection(mFieldWithError.getText().length());
-                    }
                 }
             } else {
                 // Enable editing and change the icon to the save icon.
@@ -462,17 +465,22 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            // Get the selected item from the parents adapter.
-            String selectedItem = parent.getAdapter().getItem(position).toString();
+            // The hint is added to the list, selecting it returns a position of -1.
+            if (position >= 0) {
+                // Get the selected item from the parents adapter.
+                String selectedItem = parent.getAdapter().getItem(position).toString();
 
-            // If the selected item is not "Other" then hide the other field.
-            // Otherwise, make the other field visible and focus on it.
-            if (!Objects.equals(selectedItem, getResources().getString(R.string.other))) {
-                mCategoryOther.setVisibility(View.INVISIBLE);
+                // If the selected item is not "Other" then hide the other layout.
+                // Otherwise, make the other field visible and focus on the input field within it.
+                if (!Objects.equals(selectedItem, getResources().getString(R.string.category_other))) {
+                    mCategoryOtherLayout.setVisibility(View.INVISIBLE);
+                } else {
+                    mCategoryOtherLayout.setVisibility(View.VISIBLE);
+                    mCategoryOther.requestFocus();
+                }
             } else {
-                mCategoryOther.setVisibility(View.VISIBLE);
-                mCategoryOther.setHint(R.string.other_hint);
-                mCategoryOther.requestFocus();
+                // Ensure the "Other" field is not visible.
+                mCategoryOtherLayout.setVisibility(View.INVISIBLE);
             }
         }
 
