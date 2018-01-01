@@ -15,6 +15,7 @@
     <string name="amount_error">Please enter a transaction amount</string>
     <string name="amount_hint">Enter amount</string>
     <string name="details">Details</string>
+    <string name="description">Description</string>
     <string name="description_error">Please enter a description for the transaction</string>
     <string name="other">Other</string>
     <string name="other_hint">Enter custom category</string>

@@ -76,6 +76,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.transactionAmount.setText(qualifiedAmount);
         holder.transactionDate.setText(MainActivity.TRANSACTION_DATE_FORMAT.format(mTransactionsList.get(position).date));
         holder.transactionDescription.setText(mTransactionsList.get(position).description);
+        holder.transactionCategory.setText(mTransactionsList.get(position).category);
     }
 
     /**
@@ -108,6 +109,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         TextView transactionAmount;
         TextView transactionDate;
         TextView transactionDescription;
+        TextView transactionCategory;
 
         /**
          * Constructor for the ViewHolder.
@@ -121,6 +123,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             this.transactionAmount = itemView.findViewById(R.id.transactionAmount);
             this.transactionDate = itemView.findViewById(R.id.transactionDate);
             this.transactionDescription = itemView.findViewById(R.id.transactionDescription);
+            this.transactionCategory = itemView.findViewById(R.id.transactionCategory);
 
             itemView.setOnClickListener(this);
         }
