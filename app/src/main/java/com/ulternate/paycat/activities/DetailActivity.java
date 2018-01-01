@@ -17,7 +17,6 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
@@ -34,6 +33,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+
+import fr.ganfra.materialspinner.MaterialSpinner;
 
 /**
  * Detail activity for the application, showing information for a single transaction.
@@ -52,7 +53,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     private TextInputEditText mCategoryOther;
     private TextInputLayout mCategoryOtherLayout;
     private TextView mDate;
-    private Spinner mCategory;
+    private MaterialSpinner mCategory;
 
     // Fields for widgets and widget values.
     private List<TextInputEditText> mTextWidgets;
@@ -183,13 +184,15 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         // Set the category spinner, filling in the Category "Other" EditText if the category
         // can't be found in the list of values in the spinner.
         String initialCategory = transaction.category;
+        // Note, MaterialSpinner prepends the hint to the list so we must add 1 to the position for
+        // selection to select the correct item.
         if (mCategories.contains(initialCategory)) {
-            mCategory.setSelection(mCategories.indexOf(initialCategory));
+            mCategory.setSelection(mCategories.indexOf(initialCategory) + 1);
         } else {
-            mCategory.setSelection(mCategories.indexOf(getResources().getString(R.string.other)));
+            mCategory.setSelection(mCategories.indexOf(getResources().getString(R.string.category_other)) + 1);
 
             // Make mCategoryOther visible and set the text.
-            mCategoryOther.setVisibility(View.VISIBLE);
+            mCategoryOtherLayout.setVisibility(View.VISIBLE);
             mCategoryOther.setText(initialCategory);
         }
     }
@@ -206,7 +209,6 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             mAmountVal = (float) 0.0;
         }
         mDescriptionVal = mDescription.getText().toString();
-        mCategorySelection = mCategory.getSelectedItem().toString();
         mCategoryOtherVal = mCategoryOther.getText().toString();
 
         // The Transaction amount will be 0.0 if the EditText was empty when the user hit save.
@@ -223,9 +225,18 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             return false;
         }
 
+        // Category spinner has a hint that could be selected, this returns a NullPointerException
+        // with the MaterialSpinner library as the hint is at index -1.
+        try {
+            mCategorySelection = mCategory.getSelectedItem().toString();
+        } catch (NullPointerException e) {
+            mEditingErrorMsg = getResources().getString(R.string.category_error);
+            return false;
+        }
+
         // Category Other field cannot be empty if the selected category is "Other". Note, the
         // spinner doesn't allow empty selections.
-        if (Objects.equals(mCategorySelection, getResources().getString(R.string.other))) {
+        if (Objects.equals(mCategorySelection, getResources().getString(R.string.category_other))) {
             if (mCategoryOtherVal.isEmpty()) {
                 mEditingErrorMsg = getResources().getString(R.string.category_other_error);
                 mFieldWithError = mCategoryOther;
@@ -253,7 +264,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         mTransaction.amount = mAmountVal;
         mTransaction.description = mDescriptionVal;
 
-        if (Objects.equals(mCategorySelection, getResources().getString(R.string.other))) {
+        if (Objects.equals(mCategorySelection, getResources().getString(R.string.category_other))) {
             mTransaction.category = mCategoryOtherVal;
         } else {
             mTransaction.category = mCategorySelection;
@@ -464,16 +475,22 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            // Get the selected item from the parents adapter.
-            String selectedItem = parent.getAdapter().getItem(position).toString();
+            // The hint is added to the list, selecting it returns a position of -1.
+            if (position >= 0) {
+                // Get the selected item from the parents adapter.
+                String selectedItem = parent.getAdapter().getItem(position).toString();
 
-            // If the selected item is not "Other" then hide the other layout.
-            // Otherwise, make the other field visible and focus on the input field within it.
-            if (!Objects.equals(selectedItem, getResources().getString(R.string.other))) {
-                mCategoryOtherLayout.setVisibility(View.INVISIBLE);
+                // If the selected item is not "Other" then hide the other layout.
+                // Otherwise, make the other field visible and focus on the input field within it.
+                if (!Objects.equals(selectedItem, getResources().getString(R.string.category_other))) {
+                    mCategoryOtherLayout.setVisibility(View.INVISIBLE);
+                } else {
+                    mCategoryOtherLayout.setVisibility(View.VISIBLE);
+                    mCategoryOther.requestFocus();
+                }
             } else {
-                mCategoryOtherLayout.setVisibility(View.VISIBLE);
-                mCategoryOther.requestFocus();
+                // Ensure the "Other" field is not visible.
+                mCategoryOtherLayout.setVisibility(View.INVISIBLE);
             }
         }
 

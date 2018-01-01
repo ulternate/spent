@@ -69,8 +69,8 @@
 
     <ImageView
         android:id="@+id/descriptionImage"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
         android:contentDescription="@string/description_hint"
@@ -105,8 +105,8 @@
 
     <ImageView
         android:id="@+id/dateImage"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:contentDescription="@string/date"
@@ -134,23 +134,20 @@
         app:layout_constraintStart_toEndOf="@+id/dateImage"
         app:layout_constraintTop_toTopOf="@+id/dateImage"/>
 
-    <TextView
-        android:id="@+id/transactionCategoryLabel"
-        android:layout_width="0dp"
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
-        android:labelFor="@+id/transactionCategoryOther"
-        android:text="@string/category"
-        android:textAlignment="viewStart"
-        android:textColor="@color/colorTextDark"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="40dp"
+        android:contentDescription="@string/category_hint"
+        android:scaleType="centerInside"
+        android:tint="@color/colorPrimaryDark"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dateImage"/>
+        app:layout_constraintTop_toBottomOf="@+id/dateImage"
+        app:srcCompat="@drawable/ic_label_outline_black_24dp"/>
 
-    <Spinner
+    <fr.ganfra.materialspinner.MaterialSpinner
         android:id="@+id/transactionCategorySpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -159,8 +156,12 @@
         android:layout_marginTop="16dp"
         android:entries="@array/default_categories"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/transactionCategoryLabel"
+        app:layout_constraintStart_toEndOf="@+id/imageView"
+        app:layout_constraintTop_toBottomOf="@+id/dateImage"
+        app:ms_enableFloatingLabel="true"
+        app:ms_hint="@string/category_hint"
+        app:ms_floatingLabelText="@string/category_hint"
+        app:ms_alignLabels="false"
         tools:clickable="false"/>
 
     <android.support.design.widget.TextInputLayout
@@ -168,22 +169,21 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/transactionCategorySpinner"
         app:layout_constraintTop_toBottomOf="@+id/transactionCategorySpinner">
 
         <android.support.design.widget.TextInputEditText
             android:id="@+id/transactionCategoryOther"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/other_hint"
+            android:hint="@string/category_other_hint"
             android:singleLine="true"
             android:textAlignment="viewStart"
             android:textColor="@color/colorTextDark"
-            android:textSize="14sp"/>
+            android:textSize="18sp"/>
     </android.support.design.widget.TextInputLayout>
 
 </android.support.constraint.ConstraintLayout>
