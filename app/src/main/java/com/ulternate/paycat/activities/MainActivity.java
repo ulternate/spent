@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Date form used to format Date objects as desired.
     @SuppressLint("SimpleDateFormat")
-    public static final SimpleDateFormat TRANSACTION_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd H:mm a");
+    public static final SimpleDateFormat TRANSACTION_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd h:mm a");
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
