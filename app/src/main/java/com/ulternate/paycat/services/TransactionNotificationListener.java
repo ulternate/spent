@@ -1,17 +1,31 @@
 package com.ulternate.paycat.services;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Notification;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.tasks.AddTransactionAsyncTask;
 
 import java.util.Date;
+import java.util.concurrent.Executor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +34,8 @@ import java.util.regex.Pattern;
  * information from the Transaction.
  */
 public class TransactionNotificationListener extends NotificationListenerService {
+
+    private static boolean isLocationPermissionGranted;
 
     // Listen for notifications from the following applications. Note: Android Pay notifications
     // come from GMS after a transaction.
@@ -92,6 +108,12 @@ public class TransactionNotificationListener extends NotificationListenerService
             // If the notification had the appropriate content, try and match a transaction using
             // the appropriate logic.
             if (title != null && content != null) {
+                // We have a valid notification to save, check if the location permission was
+                // granted, if so then record the location when saving the Transaction.
+                isLocationPermissionGranted = ContextCompat
+                        .checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED;
+
                 switch (notification_code) {
                     case ANDROID_PAY_CODE:
                         handleAndroidPayNotification(title, content, sbn.getPostTime());
@@ -102,6 +124,29 @@ public class TransactionNotificationListener extends NotificationListenerService
                 }
             }
         }
+    }
+
+    /**
+     * Get a Location object representing the last location from the LocationProvider.
+     * @return a Location object with the Lat and Long of the phone when the notification was
+     * received, or 0:0.
+     */
+    @SuppressLint("MissingPermission")
+    private Location getLastLocation() {
+        String mLocationProvider = LocationManager.GPS_PROVIDER;
+        Location lastLocation = new Location(mLocationProvider);
+
+        if (isLocationPermissionGranted) {
+            LocationManager mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+            if (mLocationManager != null) {
+                lastLocation = mLocationManager.getLastKnownLocation(mLocationProvider);
+            }
+        } else {
+            lastLocation.setLatitude(0.0);
+            lastLocation.setLatitude(0.0);
+        }
+
+        return lastLocation;
     }
 
     /**
@@ -123,6 +168,10 @@ public class TransactionNotificationListener extends NotificationListenerService
         Matcher matcher = pattern.matcher(content);
 
         if (matcher.find()) {
+            // Get the last location (will have LatLng 0:0 if location permission is disabled).
+            Location transactionLocation = getLastLocation();
+
+            // Build and save the Transaction.
             Transaction transaction = new Transaction(
                     Float.parseFloat(matcher.group(1)),
                     title,
@@ -130,8 +179,8 @@ public class TransactionNotificationListener extends NotificationListenerService
                     DEFAULT_CATEGORY,
                     ANDROID_PAY,
                     new Date(postTime),
-                    (float) 0.0,
-                    (float) 0.0);
+                    (float) transactionLocation.getLatitude(),
+                    (float) transactionLocation.getLongitude());
             new AddTransactionAsyncTask(getApplicationContext()).execute(transaction);
         }
     }
@@ -155,6 +204,10 @@ public class TransactionNotificationListener extends NotificationListenerService
 
         if (matcher.find()) {
             if (matcher.groupCount() == 2) {
+                // Get the last location (will have LatLng 0:0 if location permission is disabled).
+                Location transactionLocation = getLastLocation();
+
+                // Build and save the Transaction.
                 Transaction transaction = new Transaction(
                         Float.parseFloat(matcher.group(1)),
                         matcher.group(2),
@@ -162,8 +215,8 @@ public class TransactionNotificationListener extends NotificationListenerService
                         DEFAULT_CATEGORY,
                         PAYPAL,
                         new Date(postTime),
-                        (float) 0.0,
-                        (float) 0.0);
+                        (float) transactionLocation.getLatitude(),
+                        (float) transactionLocation.getLongitude());
                 new AddTransactionAsyncTask(getApplicationContext()).execute(transaction);
             }
         }
