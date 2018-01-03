@@ -1,16 +1,14 @@
 package com.ulternate.paycat.services;
 
 import android.app.Notification;
-import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
-import com.ulternate.paycat.data.AppDatabase;
 import com.ulternate.paycat.data.Transaction;
+import com.ulternate.paycat.tasks.AddTransactionAsyncTask;
 
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -160,34 +158,6 @@ public class TransactionNotificationListener extends NotificationListenerService
                 );
                 new AddTransactionAsyncTask(getApplicationContext()).execute(transaction);
             }
-        }
-    }
-
-    /**
-     * Private class to insert a Transaction object into the database asynchronously.
-     */
-    private static class AddTransactionAsyncTask extends AsyncTask<Transaction, Void, Void> {
-
-        // Instance of the app database.
-        private AppDatabase mAppDatabase;
-
-        /**
-         * Construct the AsyncTask and get the AppDatabase instance.
-         * @param context: The context from the service.
-         */
-        AddTransactionAsyncTask(Context context) {
-            mAppDatabase = AppDatabase.getAppDatabase(context);
-        }
-
-        /**
-         * Insert the transaction into the database in the background.
-         * @param transactions: An array of transactions.
-         * @return null.
-         */
-        @Override
-        protected Void doInBackground(Transaction... transactions) {
-            mAppDatabase.transactionDao().insertTransaction(transactions[0]);
-            return null;
         }
     }
 }

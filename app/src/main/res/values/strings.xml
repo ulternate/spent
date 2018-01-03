@@ -26,6 +26,11 @@
     <string name="editing_locked_warning">Please click the Edit action button to edit this transaction</string>
     <string name="editing_in_progress">Editing enabled. Click "Save" to save changes</string>
     <string name="changes_saved">Changes to transaction have been saved</string>
+    <string name="delete">Delete</string>
+    <string name="delete_transaction">Delete Transaction</string>
+    <string name="delete_transaction_message">This will delete this record, are you sure you wish to continue?</string>
+    <string name="delete_transaction_success_message">Transaction \"%1$s\" was deleted</string>
+    <string name="undo">UNDO</string>
     <string-array name="default_categories">
         <item>Bills</item>
         <item>Charity/Donations</item>
