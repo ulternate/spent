@@ -129,10 +129,13 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         mFragmentManager = getFragmentManager();
         mInitialCalendar = Calendar.getInstance();
 
-        // Show the mapFragment and use the Transaction location if the permission was granted.
-        if (ContextCompat.checkSelfPermission(this,
+
+        // Show the mapFragment and use the Transaction location if the permission was granted and
+        // the location is not set to the default 0.0.
+        boolean hasLocationAccess = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+                == PackageManager.PERMISSION_GRANTED;
+        if (hasLocationAccess && mTransaction.latitude != 0.0 && mTransaction.longitude != 0.0) {
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                     .findFragmentById(R.id.mapView);
             mapFragment.getMapAsync(this);
