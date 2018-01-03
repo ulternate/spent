@@ -163,7 +163,7 @@
             app:layout_constraintTop_toBottomOf="@+id/textView"/>
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/categoryImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -198,9 +198,9 @@
             android:layout_marginEnd="16dp"
             android:layout_marginStart="18dp"
             android:layout_marginTop="8dp"
-            android:visibility="invisible"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/imageView"
+            app:layout_constraintStart_toEndOf="@+id/categoryImage"
             app:layout_constraintTop_toBottomOf="@+id/transactionCategorySpinner">
 
             <android.support.design.widget.TextInputEditText
@@ -211,8 +211,47 @@
                 android:singleLine="true"
                 android:textAlignment="viewStart"
                 android:textColor="@color/colorTextDark"
-                android:textSize="18sp"/>
+                android:textSize="18sp" />
         </android.support.design.widget.TextInputLayout>
+
+        <ImageView
+            android:id="@+id/mapImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:contentDescription="@string/location"
+            android:scaleType="centerInside"
+            android:tint="@color/colorPrimaryDark"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/mapView"
+            app:srcCompat="@drawable/ic_map_black_24dp" />
+
+        <TextView
+            android:id="@+id/mapLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="16dp"
+            android:labelFor="@+id/mapView"
+            android:text="@string/location"
+            android:textSize="12sp"
+            app:layout_constraintStart_toEndOf="@+id/categoryImage"
+            app:layout_constraintTop_toBottomOf="@+id/transactionCategoryOtherLayout"
+            tools:text="@string/location" />
+
+        <fragment
+            android:id="@+id/mapView"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/location"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/mapLabel"
+            app:layout_constraintTop_toBottomOf="@+id/mapLabel" />
 
     </android.support.constraint.ConstraintLayout>
 </ScrollView>

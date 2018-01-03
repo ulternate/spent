@@ -39,6 +39,7 @@
     <string name="delete_transaction">Delete Transaction</string>
     <string name="delete_transaction_message">This will delete this record, are you sure you wish to continue?</string>
     <string name="delete_transaction_success_message">Transaction \"%1$s\" was deleted</string>
+    <string name="location">Location</string>
     <string name="undo">UNDO</string>
     <string-array name="default_categories">
         <item>Bills</item>

@@ -1,13 +1,16 @@
 package com.ulternate.paycat.activities;
 
+import android.Manifest;
 import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,6 +22,12 @@ import android.widget.AdapterView;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.ulternate.paycat.R;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.tasks.DeleteTransactionAsyncTask;
@@ -40,7 +49,7 @@ import fr.ganfra.materialspinner.MaterialSpinner;
  * Detail activity for the application, showing information for a single transaction.
  */
 public class DetailActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener,
-        TimePickerDialog.OnTimeSetListener {
+        TimePickerDialog.OnTimeSetListener, OnMapReadyCallback {
 
     // The Transaction being viewed/edited.
     private Transaction mTransaction;
@@ -119,6 +128,20 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         // The following are used by the date and time pickers.
         mFragmentManager = getFragmentManager();
         mInitialCalendar = Calendar.getInstance();
+
+        // Show the mapFragment and use the Transaction location if the permission was granted.
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.mapView);
+            mapFragment.getMapAsync(this);
+        } else {
+            // Hide the mapFragment and other UI elements.
+            findViewById(R.id.mapImage).setVisibility(View.GONE);
+            findViewById(R.id.mapView).setVisibility(View.GONE);
+            findViewById(R.id.mapLabel).setVisibility(View.GONE);
+        }
     }
 
     /**
@@ -487,14 +510,14 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
                 // If the selected item is not "Other" then hide the other layout.
                 // Otherwise, make the other field visible and focus on the input field within it.
                 if (!Objects.equals(selectedItem, getResources().getString(R.string.category_other))) {
-                    mCategoryOtherLayout.setVisibility(View.INVISIBLE);
+                    mCategoryOtherLayout.setVisibility(View.GONE);
                 } else {
                     mCategoryOtherLayout.setVisibility(View.VISIBLE);
                     mCategoryOther.requestFocus();
                 }
             } else {
                 // Ensure the "Other" field is not visible.
-                mCategoryOtherLayout.setVisibility(View.INVISIBLE);
+                mCategoryOtherLayout.setVisibility(View.GONE);
             }
         }
 
@@ -539,5 +562,21 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
                     }
                 });
         return(alertDialogBuilder.create());
+    }
+
+    /**
+     * Callback for when the map is ready.
+     * @param googleMap: The GoogleMap object.
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        // Set the location from the Transaction and move the camera to it.
+        LatLng location = new LatLng(mTransaction.latitude, mTransaction.longitude);
+        googleMap.addMarker(new MarkerOptions().position(location)
+                .title(mTransaction.description));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15.0f));
+
+        // Disable controls for the Map.
+        googleMap.getUiSettings().setAllGesturesEnabled(false);
     }
 }
