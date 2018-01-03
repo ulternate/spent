@@ -129,8 +129,9 @@ public class TransactionNotificationListener extends NotificationListenerService
                     title,
                     DEFAULT_CATEGORY,
                     ANDROID_PAY,
-                    new Date(postTime)
-            );
+                    new Date(postTime),
+                    (float) 0.0,
+                    (float) 0.0);
             new AddTransactionAsyncTask(getApplicationContext()).execute(transaction);
         }
     }
@@ -160,8 +161,9 @@ public class TransactionNotificationListener extends NotificationListenerService
                         matcher.group(2),
                         DEFAULT_CATEGORY,
                         PAYPAL,
-                        new Date(postTime)
-                );
+                        new Date(postTime),
+                        (float) 0.0,
+                        (float) 0.0);
                 new AddTransactionAsyncTask(getApplicationContext()).execute(transaction);
             }
         }
