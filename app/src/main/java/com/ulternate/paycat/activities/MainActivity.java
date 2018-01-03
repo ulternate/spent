@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -23,6 +24,7 @@ import com.ulternate.paycat.adapters.TransactionDividerItemDecoration;
 import com.ulternate.paycat.adapters.TransactionOnClickListener;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
+import com.ulternate.paycat.tasks.AddTransactionAsyncTask;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,8 +37,11 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
+    private static final int DETAIL_ACTIVITY_CODE = 1;
 
     private TransactionAdapter mRecyclerViewAdapter;
+    private Transaction mDeletedTransaction;
+    private View mView;
 
     // Date form used to format Date objects as desired.
     @SuppressLint("SimpleDateFormat")
@@ -47,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // Get the main layout view for showing snackbars.
+        mView = findViewById(R.id.transactionsListLayout);
 
         // Get the Transactions RecyclerView.
         RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.transactionsList);
@@ -98,7 +106,44 @@ public class MainActivity extends AppCompatActivity {
             Transaction clickedTransaction = mRecyclerViewAdapter.getTransaction(position);
             detailIntent.putExtra("transaction", clickedTransaction);
 
-            startActivity(detailIntent);
+            // Start the detail activity for a result, enabling us to undo the deletion action that
+            // finishes this activity.
+            startActivityForResult(detailIntent, DETAIL_ACTIVITY_CODE);
+        }
+    };
+
+    /**
+     * Handle the result from any activity started for a result.
+     * @param requestCode: The request code used when the activity was started, int.
+     * @param resultCode: The result code set by the activity prior to being finished, int.
+     * @param data: The return Intent containing any data sent back by the activity.
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Handle the return from the DetailActivity after deleting a Transaction.
+        if (requestCode == DETAIL_ACTIVITY_CODE) {
+            if (resultCode == RESULT_OK) {
+                // Get the transaction that was deleted.
+                mDeletedTransaction = (Transaction) data.getSerializableExtra("transaction");
+                // Show a Snackbar, mentioning which Transaction was deleted and providing the
+                // option to undo the deletion of the Transaction.
+                String msg = getResources().getString(
+                        R.string.delete_transaction_success_message, mDeletedTransaction.description);
+                Snackbar deletedSnackbar = Snackbar.make(mView, msg, Snackbar.LENGTH_LONG);
+                deletedSnackbar.setAction(getResources().getString(R.string.undo), mUndoDeletionListener).show();
+            }
+        }
+    }
+
+    /**
+     * OnClickListener used by the Snackbar shown when a Transaction is deleted to enable the user
+     * to undo the deletion of that Transaction.
+     */
+    private View.OnClickListener mUndoDeletionListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // Re-add the deleted transaction back to the database.
+            new AddTransactionAsyncTask(getApplicationContext()).execute(mDeletedTransaction);
         }
     };
 

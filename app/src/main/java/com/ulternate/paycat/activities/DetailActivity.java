@@ -1,14 +1,14 @@
 package com.ulternate.paycat.activities;
 
 import android.app.FragmentManager;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
@@ -20,8 +20,9 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.ulternate.paycat.R;
-import com.ulternate.paycat.data.AppDatabase;
 import com.ulternate.paycat.data.Transaction;
+import com.ulternate.paycat.tasks.DeleteTransactionAsyncTask;
+import com.ulternate.paycat.tasks.UpdateTransactionAsyncTask;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
@@ -44,7 +45,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     // The Transaction being viewed/edited.
     private Transaction mTransaction;
 
-    private FloatingActionButton mFloatingActionButton;
+    private FloatingActionButton mEditActionButton;
 
     // The following widgets enable editing of the Transaction.
     private TextInputEditText mAmount;
@@ -109,9 +110,11 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         // Disable editing initially.
         disableEditing();
 
-        // Get the FloatingActionButton and set the OnClickListener.
-        mFloatingActionButton = findViewById(R.id.fab);
-        mFloatingActionButton.setOnClickListener(mFabOnClickListener);
+        // Get the FloatingActionButtons and set the OnClickListeners.
+        mEditActionButton = findViewById(R.id.fab);
+        mEditActionButton.setOnClickListener(mEditFabOnClickListener);
+        FloatingActionButton mDeleteActionButton = findViewById(R.id.deleteFab);
+        mDeleteActionButton.setOnClickListener(mDeleteFabOnClickListener);
 
         // The following are used by the date and time pickers.
         mFragmentManager = getFragmentManager();
@@ -361,7 +364,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
      *
      * Clicking when editing is disabled will unlock the fields for editing.
      */
-    private View.OnClickListener mFabOnClickListener = new View.OnClickListener() {
+    private View.OnClickListener mEditFabOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mEditingEnabled) {
@@ -369,8 +372,8 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
                 if (areChangesValid()) {
                     // Disable the editing functionality and change the icon to the edit icon.
                     disableEditing();
-                    mFloatingActionButton.setImageResource(R.drawable.ic_edit_black_24dp);
-                    mFloatingActionButton.setContentDescription(getResources().getString(R.string.edit));
+                    mEditActionButton.setImageResource(R.drawable.ic_edit_black_24dp);
+                    mEditActionButton.setContentDescription(getResources().getString(R.string.edit));
 
                     // Update the Transaction values.
                     updateTransactionValues();
@@ -382,13 +385,24 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             } else {
                 // Enable editing and change the icon to the save icon.
                 enableEditing();
-                mFloatingActionButton.setImageResource(R.drawable.ic_save_black_24dp);
-                mFloatingActionButton.setContentDescription(getResources().getString(R.string.save));
+                mEditActionButton.setImageResource(R.drawable.ic_save_black_24dp);
+                mEditActionButton.setContentDescription(getResources().getString(R.string.save));
 
                 // Show a message mentioning that editing is enabled.
                 showSnackBar(v, getResources().getString(R.string.editing_in_progress),
                         Snackbar.LENGTH_SHORT, "Editing Enabled");
             }
+        }
+    };
+
+    /**
+     * OnClickListener for the delete Floating Action Button, builds and shows an AlertDialog to
+     * warn the user and seek confirmation prior to deleting the Transaction.
+     */
+    private View.OnClickListener mDeleteFabOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            buildDeleteTransactionAlertDialog().show();
         }
     };
 
@@ -491,25 +505,39 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     };
 
     /**
-     * Private class to update a Transaction object in the database asynchronously.
+     * Build and return an AlertDialog that warns and enables the user to delete the Transaction.
+     * @return an AlertDialog. Positive action will delete the Transaction and finish the activity.
+     *    Negative action will dismiss the dialog.
      */
-    private static class UpdateTransactionAsyncTask extends AsyncTask<Transaction, Void, Void> {
+    private AlertDialog buildDeleteTransactionAlertDialog() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(R.string.delete_transaction);
+        alertDialogBuilder.setMessage(R.string.delete_transaction_message);
+        alertDialogBuilder.setPositiveButton(R.string.delete,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Handle click of "Delete" button.
+                        if (mTransaction != null) {
+                            // Create the return intent and send the original transaction back with
+                            // it to enable the user to undo deleting the transaction.
+                            Intent returnIntent = new Intent();
+                            returnIntent.putExtra("transaction", mTransaction);
+                            setResult(RESULT_OK, returnIntent);
 
-        // Instance of the app database.
-        private AppDatabase mAppDatabase;
-
-        /**
-         * Construct the AsyncTask and get the AppDatabase instance.
-         * @param context: The context from the service.
-         */
-        UpdateTransactionAsyncTask(Context context) {
-            mAppDatabase = AppDatabase.getAppDatabase(context);
-        }
-
-        @Override
-        protected Void doInBackground(Transaction... transactions) {
-            mAppDatabase.transactionDao().updateTransaction(transactions[0]);
-            return null;
-        }
+                            // Delete the transaction and finish the activity.
+                            new DeleteTransactionAsyncTask(getApplicationContext()).execute(mTransaction);
+                            finish();
+                        } else {
+                            dialog.dismiss();
+                        }
+                    }
+                });
+        alertDialogBuilder.setNegativeButton(android.R.string.cancel,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+                    }
+                });
+        return(alertDialogBuilder.create());
     }
 }
