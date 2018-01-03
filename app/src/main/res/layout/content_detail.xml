@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,249 +9,261 @@
     tools:context="com.ulternate.paycat.activities.DetailActivity"
     tools:showIn="@layout/activity_detail">
 
-    <android.support.constraint.ConstraintLayout
-        android:layout_width="match_parent"
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/deleteFab"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@color/cardview_light_background">
+        android:layout_marginEnd="28dp"
+        android:layout_marginTop="92dp"
+        android:contentDescription="@string/delete"
+        android:tint="@android:color/white"
+        app:backgroundTint="@color/colorAccentRed"
+        app:fabSize="mini"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_delete_black_24dp" />
 
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/transactionHeader"
-            android:layout_width="match_parent"
-            android:layout_height="112dp"
-            android:background="@color/colorPrimary"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:maxHeight="112dp">
-
-            <TextView
-                android:id="@+id/transactionDetailsLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginStart="16dp"
-                android:labelFor="@+id/transactionDescription"
-                android:text="@string/transaction_details"
-                android:textColor="@android:color/white"
-                android:textSize="24sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="parent" />
-
-        </android.support.constraint.ConstraintLayout>
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/deleteFab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
-            android:layout_marginTop="92dp"
-            android:contentDescription="@string/delete"
-            android:tint="@android:color/white"
-            app:backgroundTint="@color/colorAccentRed"
-            app:fabSize="mini"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_delete_black_24dp" />
-
-        <ImageView
-            android:id="@+id/amountImage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            android:contentDescription="@string/amount_hint"
-            android:tint="@color/colorPrimaryDark"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/transactionAmountLayout"
-            app:srcCompat="@drawable/ic_dollar_black_24dp" />
-
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/transactionAmountLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/amountImage"
-            app:layout_constraintTop_toBottomOf="@+id/transactionHeader">
-
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/transactionAmount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/amount_hint"/>
-        </android.support.design.widget.TextInputLayout>
-
-        <ImageView
-            android:id="@+id/descriptionImage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            android:contentDescription="@string/description_hint"
-            android:scaleType="centerInside"
-            android:tint="@color/colorPrimaryDark"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/transactionDescriptionLayout"
-            app:srcCompat="@drawable/ic_send_black_24dp"/>
-
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/transactionDescriptionLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/descriptionImage"
-            app:layout_constraintTop_toBottomOf="@+id/transactionAmountLayout">
-
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/transactionDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/description_hint"
-                android:inputType="none"
-                android:maxLines="4"
-                android:minLines="1"
-                android:singleLine="false"
-                android:textColor="@color/colorTextDark"/>
-        </android.support.design.widget.TextInputLayout>
-
-        <ImageView
-            android:id="@+id/dateImage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:contentDescription="@string/date"
-            android:scaleType="centerInside"
-            android:tint="@color/colorPrimaryDark"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView"
-            app:srcCompat="@drawable/ic_event_black_24dp"/>
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/transactionHeader"
+        android:layout_width="match_parent"
+        android:layout_height="112dp"
+        android:background="@color/colorPrimary"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:maxHeight="112dp">
 
         <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="16dp"
-            android:contentDescription="@string/date_hint"
-            android:text="@string/date_hint"
-            android:textSize="12sp"
-            app:layout_constraintStart_toStartOf="@+id/transactionDescriptionLayout"
-            app:layout_constraintTop_toBottomOf="@+id/transactionDescriptionLayout"/>
-
-        <TextView
-            android:id="@+id/transactionDate"
+            android:id="@+id/transactionDetailsLabel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:layout_marginEnd="16dp"
-            android:background="@android:color/transparent"
-            android:ems="10"
-            android:focusable="false"
-            android:inputType="none"
-            android:textAlignment="viewStart"
-            android:textColor="@color/colorTextDark"
-            android:textIsSelectable="false"
-            android:textSize="18sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/textView"
-            app:layout_constraintTop_toBottomOf="@+id/textView"/>
-
-        <ImageView
-            android:id="@+id/categoryImage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="40dp"
-            android:contentDescription="@string/category_hint"
-            android:scaleType="centerInside"
-            android:tint="@color/colorPrimaryDark"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/dateImage"
-            app:srcCompat="@drawable/ic_label_outline_black_24dp"/>
-
-        <fr.ganfra.materialspinner.MaterialSpinner
-            android:id="@+id/transactionCategorySpinner"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="16dp"
-            android:entries="@array/default_categories"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/transactionDate"
-            app:layout_constraintTop_toBottomOf="@+id/dateImage"
-            app:ms_alignLabels="false"
-            app:ms_enableFloatingLabel="true"
-            app:ms_floatingLabelText="@string/category_hint"
-            app:ms_hint="@string/category_hint"
-            tools:clickable="false"/>
-
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/transactionCategoryOtherLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_marginStart="18dp"
-            android:layout_marginTop="8dp"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/categoryImage"
-            app:layout_constraintTop_toBottomOf="@+id/transactionCategorySpinner">
-
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/transactionCategoryOther"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/category_other_hint"
-                android:singleLine="true"
-                android:textAlignment="viewStart"
-                android:textColor="@color/colorTextDark"
-                android:textSize="18sp" />
-        </android.support.design.widget.TextInputLayout>
-
-        <ImageView
-            android:id="@+id/mapImage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:contentDescription="@string/location"
-            android:scaleType="centerInside"
-            android:tint="@color/colorPrimaryDark"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/mapView"
-            app:srcCompat="@drawable/ic_map_black_24dp" />
-
-        <TextView
-            android:id="@+id/mapLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="16dp"
-            android:labelFor="@+id/mapView"
-            android:text="@string/location"
-            android:textSize="12sp"
-            app:layout_constraintStart_toEndOf="@+id/categoryImage"
-            app:layout_constraintTop_toBottomOf="@+id/transactionCategoryOtherLayout"
-            tools:text="@string/location" />
-
-        <fragment
-            android:id="@+id/mapView"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
-            android:layout_width="0dp"
-            android:layout_height="200dp"
-            android:layout_marginBottom="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="8dp"
-            android:contentDescription="@string/location"
+            android:labelFor="@+id/transactionDescription"
+            android:text="@string/transaction_details"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/mapLabel"
-            app:layout_constraintTop_toBottomOf="@+id/mapLabel" />
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent" />
 
     </android.support.constraint.ConstraintLayout>
-</ScrollView>
+
+    <ScrollView
+        android:id="@+id/scrollView2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/transactionHeader"
+        app:layout_constraintVertical_bias="0.0">
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/cardview_light_background">
+
+            <ImageView
+                android:id="@+id/amountImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:contentDescription="@string/amount_hint"
+                android:tint="@color/colorPrimaryDark"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/transactionAmountLayout"
+                app:srcCompat="@drawable/ic_dollar_black_24dp" />
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/transactionAmountLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/amountImage"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/transactionAmount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/amount_hint" />
+            </android.support.design.widget.TextInputLayout>
+
+            <ImageView
+                android:id="@+id/descriptionImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:contentDescription="@string/description_hint"
+                android:scaleType="centerInside"
+                android:tint="@color/colorPrimaryDark"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/transactionDescriptionLayout"
+                app:srcCompat="@drawable/ic_send_black_24dp" />
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/transactionDescriptionLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/descriptionImage"
+                app:layout_constraintTop_toBottomOf="@+id/transactionAmountLayout">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/transactionDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/description_hint"
+                    android:inputType="none"
+                    android:maxLines="4"
+                    android:minLines="1"
+                    android:singleLine="false"
+                    android:textColor="@color/colorTextDark" />
+            </android.support.design.widget.TextInputLayout>
+
+            <ImageView
+                android:id="@+id/dateImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:contentDescription="@string/date"
+                android:scaleType="centerInside"
+                android:tint="@color/colorPrimaryDark"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView"
+                app:srcCompat="@drawable/ic_event_black_24dp" />
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="16dp"
+                android:contentDescription="@string/date_hint"
+                android:text="@string/date_hint"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="@+id/transactionDescriptionLayout"
+                app:layout_constraintTop_toBottomOf="@+id/transactionDescriptionLayout" />
+
+            <TextView
+                android:id="@+id/transactionDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:background="@android:color/transparent"
+                android:ems="10"
+                android:focusable="false"
+                android:inputType="none"
+                android:textAlignment="viewStart"
+                android:textColor="@color/colorTextDark"
+                android:textIsSelectable="false"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/textView"
+                app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+            <ImageView
+                android:id="@+id/categoryImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="40dp"
+                android:contentDescription="@string/category_hint"
+                android:scaleType="centerInside"
+                android:tint="@color/colorPrimaryDark"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/dateImage"
+                app:srcCompat="@drawable/ic_label_outline_black_24dp" />
+
+            <fr.ganfra.materialspinner.MaterialSpinner
+                android:id="@+id/transactionCategorySpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp"
+                android:entries="@array/default_categories"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/transactionDate"
+                app:layout_constraintTop_toBottomOf="@+id/dateImage"
+                app:ms_alignLabels="false"
+                app:ms_enableFloatingLabel="true"
+                app:ms_floatingLabelText="@string/category_hint"
+                app:ms_hint="@string/category_hint"
+                tools:clickable="false" />
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/transactionCategoryOtherLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="18dp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/categoryImage"
+                app:layout_constraintTop_toBottomOf="@+id/transactionCategorySpinner">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/transactionCategoryOther"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/category_other_hint"
+                    android:singleLine="true"
+                    android:textAlignment="viewStart"
+                    android:textColor="@color/colorTextDark"
+                    android:textSize="18sp" />
+            </android.support.design.widget.TextInputLayout>
+
+            <ImageView
+                android:id="@+id/mapImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:contentDescription="@string/location"
+                android:scaleType="centerInside"
+                android:tint="@color/colorPrimaryDark"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/mapView"
+                app:srcCompat="@drawable/ic_map_black_24dp" />
+
+            <TextView
+                android:id="@+id/mapLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="16dp"
+                android:labelFor="@+id/mapView"
+                android:text="@string/location"
+                android:textSize="12sp"
+                app:layout_constraintStart_toEndOf="@+id/categoryImage"
+                app:layout_constraintTop_toBottomOf="@+id/transactionCategoryOtherLayout"
+                tools:text="@string/location" />
+
+            <fragment
+                android:id="@+id/mapView"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="0dp"
+                android:layout_height="200dp"
+                android:layout_marginBottom="100dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:contentDescription="@string/location"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/mapLabel"
+                app:layout_constraintTop_toBottomOf="@+id/mapLabel" />
+
+        </android.support.constraint.ConstraintLayout>
+    </ScrollView>
+</android.support.constraint.ConstraintLayout>
