@@ -2,6 +2,7 @@ package com.ulternate.paycat.services;
 
 import android.app.Notification;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
@@ -34,9 +35,10 @@ public class TransactionNotificationListener extends NotificationListenerService
     private static final String AMOUNT_PATTERN_REGEX = "\\$ ?(\\d+\\.\\d*)";
     private static final String PAYPAL_PATTERN_REGEX = AMOUNT_PATTERN_REGEX + "[\\s\\w]*to (.*)";
 
-    // Default transaction categories.
-    private static final String DEFAULT_ANDROID_PAY_CATEGORY = "Android Pay";
-    private static final String DEFAULT_PAYPAL_CATEGORY = "PayPal";
+    // Default transaction categories and paymentApp values.
+    private final String DEFAULT_CATEGORY = Resources.getSystem().getString(android.R.string.unknownName);
+    private static final String ANDROID_PAY = "Android Pay";
+    private static final String PAYPAL = "PayPal";
 
     /**
      * Handle the notification and send a broadcast to the main app if it's from a watched app.
@@ -124,7 +126,9 @@ public class TransactionNotificationListener extends NotificationListenerService
             Transaction transaction = new Transaction(
                     Float.parseFloat(matcher.group(1)),
                     title,
-                    DEFAULT_ANDROID_PAY_CATEGORY,
+                    title,
+                    DEFAULT_CATEGORY,
+                    ANDROID_PAY,
                     new Date(postTime)
             );
             new AddTransactionAsyncTask(getApplicationContext()).execute(transaction);
@@ -153,7 +157,9 @@ public class TransactionNotificationListener extends NotificationListenerService
                 Transaction transaction = new Transaction(
                         Float.parseFloat(matcher.group(1)),
                         matcher.group(2),
-                        DEFAULT_PAYPAL_CATEGORY,
+                        matcher.group(2),
+                        DEFAULT_CATEGORY,
+                        PAYPAL,
                         new Date(postTime)
                 );
                 new AddTransactionAsyncTask(getApplicationContext()).execute(transaction);
