@@ -1,8 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE resources [
+    <!ENTITY app_name "Paycat">
+    ]>
+
 <resources>
     <!-- Main application resources. -->
-    <string name="app_name">Paycat</string>
+    <string name="app_name">&app_name;</string>
     <string name="notification_listener_service">Notification Listener Service</string>
     <string name="notification_listener_service_explanation">The notification listener service must be enabled to begin recording payments on this device.</string>
+    <string name="location_permission_title">Enable location access</string>
+    <string name="location_permission_message">&app_name; needs access to your location to record where a payment was made</string>
+    <string name="location_permission_granted">Location permission granted</string>
+    <string name="location_permission_denied">Location permission denied, transactions won\'t record the location until you grant access</string>
 
     <!-- Resources for Transaction Detail view and editing. -->
     <string name="date">Date</string>
