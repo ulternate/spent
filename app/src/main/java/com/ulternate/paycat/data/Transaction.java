@@ -30,6 +30,10 @@ public class Transaction implements Serializable{
 
     public String paymentApp;
 
+    public float latitude;
+
+    public float longitude;
+
     @TypeConverters(Converters.class)
     public Date date;
 
@@ -39,18 +43,22 @@ public class Transaction implements Serializable{
      * @param description : String, description for the transaction, this is the description field
      *                    edited by the User.
      * @param originalDescription : String, the original description for the transaction (i.e. from
- *                            the merchant).
+*                            the merchant).
      * @param category : String, category for the transaction.
      * @param paymentApp : String, the application which sent the original notification.
      * @param date : Date, date (incl. time) for the transaction.
+     * @param latitude : long, the latitude captured when the notification was received.
+     * @param longitude : long, the longitude captured when the notification was received.
      */
     public Transaction(float amount, String description, String originalDescription, String category,
-                       String paymentApp, Date date) {
+                       String paymentApp, Date date, float latitude, float longitude) {
         this.amount = amount;
         this.description = description;
         this.originalDescription = originalDescription;
         this.category = category;
         this.paymentApp = paymentApp;
         this.date = date;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 }

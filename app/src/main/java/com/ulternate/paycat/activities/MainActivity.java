@@ -1,15 +1,20 @@
 package com.ulternate.paycat.activities;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v13.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -38,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
     private static final int DETAIL_ACTIVITY_CODE = 1;
+    private static final int REQUEST_PERMISSIONS_LOCATION_CODE = 2;
 
     private TransactionAdapter mRecyclerViewAdapter;
     private Transaction mDeletedTransaction;
@@ -92,6 +98,9 @@ public class MainActivity extends AppCompatActivity {
         if (!isNotificationServiceEnabled()) {
             buildNotificationServiceAlertDialog().show();
         }
+
+        // Check access to the location permission, requesting access if required.
+        checkLocationPermission();
     }
 
     /**
@@ -197,5 +206,79 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
         return(alertDialogBuilder.create());
+    }
+
+    /**
+     * Check if the location permissions have been granted, if not then determine if the permission
+     * should be asked for using the shouldShowRequestPermissionRationale.
+     *
+     * Note, the location isn't access or recorded in this activity, it is recorded in the
+     * TransactionNotificationListener service which also checks if the permission is granted. The
+     * request can't be in the service as it is not shown to the user.
+     */
+    public void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                // Ask the user to grant the location permission.
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.location_permission_title)
+                        .setMessage(R.string.location_permission_message)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //Prompt the user once explanation has been shown
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        REQUEST_PERMISSIONS_LOCATION_CODE);
+                            }
+                        })
+                        .create()
+                        .show();
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        REQUEST_PERMISSIONS_LOCATION_CODE);
+            }
+        }
+    }
+
+    /**
+     * Handle the result from a permission request.
+     * @param requestCode: The request code used to signify which permission was requested.
+     * @param permissions: Array of permissions requested.
+     * @param grantResults: Array of the results of each request for a permission.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_PERMISSIONS_LOCATION_CODE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        // Notify the user that the permission was successfully granted.
+                        Snackbar.make(mView,
+                                getResources().getString(R.string.location_permission_granted),
+                                Snackbar.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // Alert the user that the location of the transaction won't be saved when a
+                    // notification is received.
+                    Snackbar.make(mView,
+                            getResources().getString(R.string.location_permission_denied),
+                            Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 }

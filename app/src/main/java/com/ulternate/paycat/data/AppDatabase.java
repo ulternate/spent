@@ -15,7 +15,7 @@ import android.support.annotation.NonNull;
  * Extends RoomDatabase and serves as the access point for the application data.
  */
 
-@Database(entities = {Transaction.class}, version = 2)
+@Database(entities = {Transaction.class}, version = 3)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase{
 
@@ -42,6 +42,22 @@ public abstract class AppDatabase extends RoomDatabase{
     };
 
     /**
+     * Migration from version 2 to version 1.
+     * Adds two columns, "latitude" and "longitude".
+     */
+    private static final Migration MIGRATION2_3 = new Migration(2, 3) {
+
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE transactions "
+            + " ADD COLUMN latitude REAL NOT NULL DEFAULT 0");
+
+            database.execSQL("ALTER TABLE transactions "
+            + " ADD COLUMN longitude REAL NOT NULL DEFAULT 0");
+        }
+    };
+
+    /**
      * Get the AppDatabase as a Singleton.
      *
      * @param context: the Context from the activity/thread accessing the database.
@@ -52,7 +68,7 @@ public abstract class AppDatabase extends RoomDatabase{
             instance = Room.databaseBuilder(context.getApplicationContext(),
                     AppDatabase.class,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION1_2)
+                    .addMigrations(MIGRATION1_2, MIGRATION2_3)
                     .build();
         }
 
