@@ -540,6 +540,8 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
                 // Otherwise, make the other field visible and focus on the input field within it.
                 if (!Objects.equals(selectedItem, getResources().getString(R.string.category_other))) {
                     mCategoryOtherLayout.setVisibility(View.GONE);
+                    // Hide any soft inputs shown.
+                    mInputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 } else {
                     mCategoryOtherLayout.setVisibility(View.VISIBLE);
                     mCategoryOther.requestFocus();
