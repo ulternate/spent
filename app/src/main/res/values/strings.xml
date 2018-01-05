@@ -61,4 +61,11 @@
 
         <item>@string/category_other</item>
     </string-array>
+
+    <!-- Strings related to Settings. -->
+    <string name="settings">Settings</string>
+    <!-- Matching Transaction settings. -->
+    <string name="pref_category_match_transactions">Transaction Matching</string>
+    <string name="pref_match_category_title">Match transaction categories</string>
+    <string name="pref_match_category_summary">Try and match transaction categories automatically?</string>
 </resources>

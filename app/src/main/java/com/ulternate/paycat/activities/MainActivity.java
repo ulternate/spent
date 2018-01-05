@@ -8,6 +8,9 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -21,9 +24,13 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.ulternate.paycat.R;
+import com.ulternate.paycat.settings.GeneralSettings;
 import com.ulternate.paycat.adapters.TransactionAdapter;
 import com.ulternate.paycat.adapters.TransactionDividerItemDecoration;
 import com.ulternate.paycat.adapters.TransactionOnClickListener;
@@ -141,6 +148,39 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar deletedSnackbar = Snackbar.make(mView, msg, Snackbar.LENGTH_LONG);
                 deletedSnackbar.setAction(getResources().getString(R.string.undo), mUndoDeletionListener).show();
             }
+        }
+    }
+
+    /**
+     * Inflate the menu in the app toolbar.
+     * @param menu: the menu resource.
+     * @return true to display the menu, false to not show it.
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+
+        // Tint the settings icon to white.
+        Drawable settingsIcon = menu.findItem(R.id.menu_settings).getIcon();
+        if (settingsIcon != null) {
+            settingsIcon.mutate();
+            settingsIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
+        }
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.menu_settings:
+                Intent settingsIntent = new Intent(this, GeneralSettings.class);
+                startActivity(settingsIntent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
