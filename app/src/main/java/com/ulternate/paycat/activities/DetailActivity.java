@@ -2,6 +2,7 @@ package com.ulternate.paycat.activities;
 
 import android.Manifest;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +19,7 @@ import android.text.InputType;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
@@ -81,6 +83,9 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     private Calendar mInitialCalendar;
     private Calendar mChosenCalendar;
 
+    // InputMethodManager used to force the keyboard to show on focus.
+    private InputMethodManager mInputMethodManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,6 +120,9 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         if (mTransaction != null) {
             setInitialValues(mTransaction);
         }
+
+        // Get the inputMethodManager.
+        mInputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         // Disable editing initially.
         disableEditing();
@@ -328,6 +336,9 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         mCategory.setClickable(false);
         mCategory.setOnTouchListener(mDisabledOnTouchListener);
 
+        // Hide the keyboard.
+        mInputMethodManager.hideSoftInputFromWindow(mAmount.getWindowToken(), 0);
+
         // Mark that editing was disabled.
         mEditingEnabled = false;
     }
@@ -342,6 +353,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             editText.setTextIsSelectable(true);
             editText.setCursorVisible(true);
             editText.setOnClickListener(mEnabledOnClickListener);
+            editText.setOnFocusChangeListener(mEnabledOnFocuseChangeListener);
         }
 
         // Set the input types for the fields.
@@ -469,11 +481,23 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     };
 
     /**
+     * Force the Soft keyboard to show on focus changed for the EditText fields.
+     */
+    private View.OnFocusChangeListener mEnabledOnFocuseChangeListener = new View.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View v, boolean hasFocus) {
+            mInputMethodManager.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+        }
+    };
+
+    /**
      * OnClickListener used by the Date TextView to show the DatePickerDialog.
      */
     private View.OnClickListener mEnabledDateOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            // Hide any open soft keyboards.
+            mInputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
             // Build and show the DatePickerDialog, dismissing on selection.
             DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(
                     DetailActivity.this,
@@ -488,11 +512,13 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
     /**
      * OnTouchListener used when editing is enabled to replace the mDisabledOnTouchListener so the
-     * user doesn't continue to be warned that editing is disabled.
+     * user doesn't continue to be warned that editing is disabled. Used by the Spinner.
      */
     private View.OnTouchListener mEnabledOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
+            // Hide any open soft keyboards.
+            mInputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
             return false;
         }
     };
