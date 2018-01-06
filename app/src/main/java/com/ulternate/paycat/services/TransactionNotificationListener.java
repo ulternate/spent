@@ -129,24 +129,23 @@ public class TransactionNotificationListener extends NotificationListenerService
     /**
      * Get a Location object representing the last location from the LocationProvider.
      * @return a Location object with the Lat and Long of the phone when the notification was
-     * received, or 0:0.
+     * received, or use the default location (which is 0.0).
      */
     @SuppressLint("MissingPermission")
     private Location getLastLocation() {
         String mLocationProvider = LocationManager.GPS_PROVIDER;
-        Location lastLocation = new Location(mLocationProvider);
+        Location lastLocation = null;
 
         if (isLocationPermissionGranted) {
             LocationManager mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
             if (mLocationManager != null) {
+                // This can still be null if there hasn't been time to record a last known location
+                // hence the check on the return statement below.
                 lastLocation = mLocationManager.getLastKnownLocation(mLocationProvider);
             }
-        } else {
-            lastLocation.setLatitude(0.0);
-            lastLocation.setLatitude(0.0);
         }
 
-        return lastLocation;
+        return lastLocation == null ? new Location(mLocationProvider) : lastLocation;
     }
 
     /**
