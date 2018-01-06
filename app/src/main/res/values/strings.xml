@@ -58,6 +58,7 @@
         <item>Public Transport</item>
         <item>Rent</item>
         <item>Water</item>
+        <item>Unknown</item>
 
         <item>@string/category_other</item>
     </string-array>
