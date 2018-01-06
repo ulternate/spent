@@ -30,12 +30,12 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.ulternate.paycat.R;
-import com.ulternate.paycat.settings.GeneralSettings;
 import com.ulternate.paycat.adapters.TransactionAdapter;
 import com.ulternate.paycat.adapters.TransactionDividerItemDecoration;
 import com.ulternate.paycat.adapters.TransactionOnClickListener;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
+import com.ulternate.paycat.settings.GeneralSettings;
 import com.ulternate.paycat.tasks.AddTransactionAsyncTask;
 
 import java.text.SimpleDateFormat;
@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             // Re-add the deleted transaction back to the database.
-            new AddTransactionAsyncTask(getApplicationContext()).execute(mDeletedTransaction);
+            new AddTransactionAsyncTask(getApplicationContext(), false).execute(mDeletedTransaction);
         }
     };
 
