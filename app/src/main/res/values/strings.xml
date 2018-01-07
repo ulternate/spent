@@ -30,6 +30,7 @@
     <string name="category_other">Other</string>
     <string name="category_other_hint">Custom Category</string>
     <string name="category_other_error">Please enter a custom category for the transaction</string>
+    <string name="category_unknown">Unknown</string>
     <string name="edit">Edit</string>
     <string name="save">Save</string>
     <string name="editing_locked_warning">Please click the Edit action button to edit this transaction</string>
@@ -58,9 +59,6 @@
         <item>Public Transport</item>
         <item>Rent</item>
         <item>Water</item>
-        <item>Unknown</item>
-
-        <item>@string/category_other</item>
     </string-array>
 
     <!-- Strings related to Settings. -->

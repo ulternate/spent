@@ -338,21 +338,23 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
         String added_categories_array = mPrefs.getString(CUSTOM_CATEGORIES_ARRAY, "");
 
+        // Add any custom categories.
         if (!added_categories_array.isEmpty()) {
             String[] added_categories = added_categories_array.split("\\|");
             for (String category: added_categories) {
                 if (!allCategories.contains(category)) {
-                    // Insert the category at the correct index based on alphabetical sorting.
-                    int index = Collections.binarySearch(allCategories, category);
-                    if (index < 0) {
-                        index = (index * -1) + 1;
-                        allCategories.add(index, category);
-                    } else {
-                        allCategories.add(category);
-                    }
+                    allCategories.add(category);
                 }
             }
         }
+
+        // Sort the categories.
+        Collections.sort(allCategories, String.CASE_INSENSITIVE_ORDER);
+
+        // Add the Unknown and Other categories to the end of the list.
+        allCategories.add(getResources().getString(R.string.category_unknown));
+        allCategories.add(getResources().getString(R.string.category_other));
+
         return allCategories;
     }
 
