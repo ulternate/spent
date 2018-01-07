@@ -361,7 +361,6 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
      * @param newCategory: The custom category saved by the user.
      */
     private void updateCategories(String newCategory) {
-        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         // Get the existing custom_categories.
         String custom_categories_array = mPrefs.getString(CUSTOM_CATEGORIES_ARRAY, "");
