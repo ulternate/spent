@@ -5,8 +5,10 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
@@ -21,7 +23,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.SpinnerAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -41,6 +43,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +55,8 @@ import fr.ganfra.materialspinner.MaterialSpinner;
  */
 public class DetailActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener,
         TimePickerDialog.OnTimeSetListener, OnMapReadyCallback {
+
+    private static final String CUSTOM_CATEGORIES_ARRAY = "custom_categories_array";
 
     // The Transaction being viewed/edited.
     private Transaction mTransaction;
@@ -86,6 +91,8 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     // InputMethodManager used to force the keyboard to show on focus.
     private InputMethodManager mInputMethodManager;
 
+    private SharedPreferences mPrefs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,11 +115,16 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         // Group similar widgets.
         mTextWidgets = Arrays.asList(mAmount, mDescription, mCategoryOther);
 
-        // Get all the categories from the spinner.
-        SpinnerAdapter categorySpinnerAdapter = mCategory.getAdapter();
-        for(int i = 0; i < categorySpinnerAdapter.getCount(); i++) {
-            mCategories.add((String) categorySpinnerAdapter.getItem(i));
-        }
+        // Get the DefaultSharedPreferences.
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Get all the categories, both the default and custom categories.
+        mCategories = getCategories();
+
+        // Set the adapter for the spinner.
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, mCategories);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mCategory.setAdapter(spinnerAdapter);
 
         // Set the initial values of all widgets.
         Intent mCallingIntent = getIntent();
@@ -303,6 +315,8 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
         if (Objects.equals(mCategorySelection, getResources().getString(R.string.category_other))) {
             mTransaction.category = mCategoryOtherVal;
+            // Update the list of categories.
+            updateCategories(mCategoryOtherVal);
         } else {
             mTransaction.category = mCategorySelection;
         }
@@ -311,6 +325,59 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
         // Update the transaction in the database.
         new UpdateTransactionAsyncTask(getApplicationContext()).execute(mTransaction);
+    }
+
+    /**
+     * Get the updated list of categories, including the custom ones added using the "Other" field.
+     * @return an ArrayList of Strings representing the default and custom categories.
+     */
+    private List<String> getCategories() {
+        String[] originalCategories = getResources().getStringArray(R.array.default_categories);
+
+        List<String> allCategories = new ArrayList<>(Arrays.asList(originalCategories));
+
+        String added_categories_array = mPrefs.getString(CUSTOM_CATEGORIES_ARRAY, "");
+
+        // Add any custom categories.
+        if (!added_categories_array.isEmpty()) {
+            String[] added_categories = added_categories_array.split("\\|");
+            for (String category: added_categories) {
+                if (!allCategories.contains(category)) {
+                    allCategories.add(category);
+                }
+            }
+        }
+
+        // Sort the categories.
+        Collections.sort(allCategories, String.CASE_INSENSITIVE_ORDER);
+
+        // Add the Unknown and Other categories to the end of the list.
+        allCategories.add(getResources().getString(R.string.category_unknown));
+        allCategories.add(getResources().getString(R.string.category_other));
+
+        return allCategories;
+    }
+
+    /**
+     * Add the new custom category to the preferences.
+     * @param newCategory: The custom category saved by the user.
+     */
+    private void updateCategories(String newCategory) {
+
+        // Get the existing custom_categories.
+        String custom_categories_array = mPrefs.getString(CUSTOM_CATEGORIES_ARRAY, "");
+
+        if (!custom_categories_array.isEmpty()) {
+            String[] custom_categories = custom_categories_array.split("\\|");
+            ArrayList<String> temp = new ArrayList<>(Arrays.asList(custom_categories));
+            if (!temp.contains(newCategory)) {
+                custom_categories_array = custom_categories_array + "|" + newCategory;
+            }
+        } else {
+            custom_categories_array = newCategory;
+        }
+
+        mPrefs.edit().putString(CUSTOM_CATEGORIES_ARRAY, custom_categories_array).apply();
     }
 
     /**
