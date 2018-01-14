@@ -14,6 +14,8 @@ import com.ulternate.paycat.data.Transaction;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -75,6 +77,14 @@ public class BreakdownAdapter extends RecyclerView.Adapter<BreakdownAdapter.View
         for (Map.Entry<String, Float> entry : mAmountsMap.entrySet()) {
             mBreakdownList.add(new BreakdownItem(entry.getKey(), entry.getValue()));
         }
+
+        // Sort by totals in descending order.
+        Collections.sort(mBreakdownList, new Comparator<BreakdownItem>() {
+            @Override
+            public int compare(BreakdownItem o1, BreakdownItem o2) {
+                return Float.valueOf(o2.breakdownTotal).compareTo(o1.breakdownTotal);
+            }
+        });
     }
 
     /**

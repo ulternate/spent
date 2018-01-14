@@ -4,6 +4,8 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.ulternate.paycat.data.Transaction;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,5 +58,13 @@ public class BreakdownDataSet extends PieDataSet {
         for (Map.Entry<String, Float> entry : mAmountsMap.entrySet()) {
             mPieEntries.add(new PieEntry((float) entry.getValue(), entry.getKey()));
         }
+
+        // Sort by totals in descending order.
+        Collections.sort(mPieEntries, new Comparator<PieEntry>() {
+            @Override
+            public int compare(PieEntry o1, PieEntry o2) {
+                return Float.valueOf(o2.getValue()).compareTo(o1.getValue());
+            }
+        });
     }
 }
