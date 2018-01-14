@@ -5,7 +5,7 @@ import com.github.mikephil.charting.formatter.IValueFormatter;
 import com.github.mikephil.charting.utils.ViewPortHandler;
 
 /**
- * Custom ValueFormatter for the Breakdown PieChart to remove entry labels.
+ * Custom ValueFormatter for the BreakdownItem PieChart to remove entry labels.
  */
 public class BreakdownValueFormatter implements IValueFormatter {
 

@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
         // Add Transactions list fragment.
         viewPagerAdapter.addFragment(new TransactionFragment(), getResources().getString(R.string.tab_transactions));
-        // Add Breakdown fragment.
+        // Add BreakdownItem fragment.
         viewPagerAdapter.addFragment(new BreakdownFragment(), getResources().getString(R.string.tab_breakdown));
         viewPager.setAdapter(viewPagerAdapter);
 
