@@ -13,6 +13,7 @@ import java.util.Map;
  */
 public class BreakdownDataSet extends PieDataSet {
 
+    // DataSet for the PieChart.
     private List<PieEntry> mPieEntries;
     private Map<String, Float> mAmountsMap = new HashMap<>();
 
@@ -21,6 +22,10 @@ public class BreakdownDataSet extends PieDataSet {
         this.mPieEntries = yVals;
     }
 
+    /**
+     * Add a List of transactions to the dataset.
+     * @param transactions: A list of Transaction objects.
+     */
     public void addTransactions(List<Transaction> transactions) {
         mPieEntries.clear();
         mAmountsMap.clear();
@@ -30,6 +35,10 @@ public class BreakdownDataSet extends PieDataSet {
         notifyDataSetChanged();
     }
 
+    /**
+     * Update the amounts for each category from the updated transactions list.
+     * @param transactions: A List of Transaction objects from the ViewModel.
+     */
     private void updateCategoryAmounts(List<Transaction> transactions) {
         // Calculate the amounts per category.
         for (Transaction transaction : transactions) {

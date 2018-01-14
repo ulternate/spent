@@ -55,7 +55,7 @@ public class BreakdownAdapter extends RecyclerView.Adapter<BreakdownAdapter.View
     }
 
     /**
-     * Update the amounts for each category from the update transactions list.
+     * Update the amounts for each category from the updated transactions list.
      * @param transactions: A List of Transaction objects from the ViewModel.
      */
     private void updateCategoryAmounts(List<Transaction> transactions) {
