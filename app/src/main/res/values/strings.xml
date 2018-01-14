@@ -12,6 +12,7 @@
 
     <!-- Navigation strings. -->
     <string name="tab_transactions">Transactions</string>
+    <string name="tab_breakdown">Breakdown</string>
 
     <!-- Resources for Transaction Detail view and editing. -->
     <string name="date">Date</string>

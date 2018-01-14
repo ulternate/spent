@@ -40,6 +40,9 @@ dependencies {
     // MaterialSpinner library: https://github.com/ganfra/MaterialSpinner
     compile 'com.github.ganfra:material-spinner:2.0.0'
 
+    // MPAndroidChart library: https://github.com/PhilJay/MPAndroidChart
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
+
     annotationProcessor "android.arch.lifecycle:compiler:1.0.0"
     annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
 

@@ -27,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.ulternate.paycat.R;
+import com.ulternate.paycat.fragments.BreakdownFragment;
 import com.ulternate.paycat.fragments.TransactionFragment;
 import com.ulternate.paycat.fragments.ViewPagerAdapter;
 import com.ulternate.paycat.settings.GeneralSettings;
@@ -61,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
         ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
         // Add Transactions list fragment.
         viewPagerAdapter.addFragment(new TransactionFragment(), getResources().getString(R.string.tab_transactions));
+        // Add Breakdown fragment.
+        viewPagerAdapter.addFragment(new BreakdownFragment(), getResources().getString(R.string.tab_breakdown));
         viewPager.setAdapter(viewPagerAdapter);
 
         // Set up the TabLayout.
