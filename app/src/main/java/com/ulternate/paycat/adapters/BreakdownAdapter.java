@@ -12,8 +12,8 @@ import com.ulternate.paycat.R;
 import com.ulternate.paycat.data.BreakdownItem;
 import com.ulternate.paycat.data.Transaction;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -97,9 +97,9 @@ public class BreakdownAdapter extends RecyclerView.Adapter<BreakdownAdapter.View
      */
     @Override
     public void onBindViewHolder(BreakdownAdapter.ViewHolder holder, int position) {
-        // Get the currency from the current Locale and prepend the symbol to the amount.
-        Currency currency = Currency.getInstance(Locale.getDefault());
-        String qualifiedAmount = currency.getSymbol() + String.valueOf(mBreakdownList.get(position).breakdownTotal);
+        // Format the amount as a currency based upon the locale.
+        NumberFormat numberFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+        String qualifiedAmount = numberFormat.format(mBreakdownList.get(position).breakdownTotal);
 
         int[] colours = mContext.getResources().getIntArray(R.array.material_colors_500);
         if (position < colours.length) {
