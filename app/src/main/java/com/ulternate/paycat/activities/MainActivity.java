@@ -2,16 +2,19 @@ package com.ulternate.paycat.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.ActivityCompat;
@@ -27,22 +30,41 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.ulternate.paycat.R;
+import com.ulternate.paycat.data.Transaction;
+import com.ulternate.paycat.data.TransactionViewModel;
 import com.ulternate.paycat.fragments.BreakdownFragment;
 import com.ulternate.paycat.fragments.TransactionFragment;
 import com.ulternate.paycat.fragments.ViewPagerAdapter;
 import com.ulternate.paycat.settings.GeneralSettings;
+import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Main activity for the application.
  */
 public class MainActivity extends AppCompatActivity {
 
+    public static final String PREFS_FILTERED_BOOLEAN_KEY = "filtered";
+    public static final String PREFS_DATE_FROM_LONG_KEY = "dateFrom";
+    public static final String PREFS_DATE_TO_LONG_KEY = "dateTo";
+
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
     private static final int REQUEST_PERMISSIONS_LOCATION_CODE = 2;
+
+    private LifecycleOwner mLifecycleOwner;
+    private TransactionViewModel mTransactionViewModel;
     private View mView;
+    private ViewPagerAdapter mViewPagerAdapter;
+
+    private SharedPreferences mPrefs;
+    private boolean mSelectingFrom = true;
+    private Date mFromDate;
+    private Date mToDate;
 
     // Date form used to format Date objects as desired.
     @SuppressLint("SimpleDateFormat")
@@ -57,14 +79,17 @@ public class MainActivity extends AppCompatActivity {
         // Get the main layout view for showing snackbars.
         mView = findViewById(android.R.id.content);
 
+        // Set the LifecycleOwner, used to set Observers in the DatePickerDialog.
+        mLifecycleOwner = this;
+
         // Get the ViewPager, set the adapter and add the required fragments.
         ViewPager viewPager = findViewById(R.id.viewpager);
-        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
+        mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
         // Add Transactions list fragment.
-        viewPagerAdapter.addFragment(new TransactionFragment(), getResources().getString(R.string.tab_transactions));
+        mViewPagerAdapter.addFragment(new TransactionFragment(), getResources().getString(R.string.tab_transactions));
         // Add BreakdownItem fragment.
-        viewPagerAdapter.addFragment(new BreakdownFragment(), getResources().getString(R.string.tab_breakdown));
-        viewPager.setAdapter(viewPagerAdapter);
+        mViewPagerAdapter.addFragment(new BreakdownFragment(), getResources().getString(R.string.tab_breakdown));
+        viewPager.setAdapter(mViewPagerAdapter);
 
         // Set up the TabLayout.
         TabLayout tabLayout = findViewById(R.id.tabLayout);
@@ -77,6 +102,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Check access to the location permission, requesting access if required.
         checkLocationPermission();
+
+        // Get the DefaultSharedPreferences.
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Get an instance of the TransactionViewModel to be used for all subclasses.
+        mTransactionViewModel = ViewModelProviders.of(this).get(
+                TransactionViewModel.class);
     }
 
     /**
@@ -89,27 +121,149 @@ public class MainActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
 
-        // Tint the settings icon to white.
-        Drawable settingsIcon = menu.findItem(R.id.menu_settings).getIcon();
-        if (settingsIcon != null) {
-            settingsIcon.mutate();
-            settingsIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
+        // Update the menu items depending on if the Transactions list is filtered or no.
+        MenuItem setFilter = menu.findItem(R.id.menu_date_filter);
+        MenuItem clearFilter = menu.findItem(R.id.menu_clear_date_filter);
+        if (mPrefs.getBoolean(PREFS_FILTERED_BOOLEAN_KEY, false)) {
+            // Change the wording of the setFilter option to the edit option.
+            setFilter.setTitle(getResources().getString(R.string.menu_date_filter_edit));
+            // Show the clearFilter option.
+            clearFilter.setVisible(true);
+        } else {
+            // Change the wording back to the original value for the setFilter option.
+            setFilter.setTitle(getResources().getString(R.string.menu_date_filter));
+            // Hide the clearFilter option.
+            clearFilter.setVisible(false);
         }
 
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * Handle menu item selections.
+     * @param item: The MenuItem that was selected.
+     * @return boolean Return false to allow normal menu processing to
+     *         proceed, true to consume it here.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         switch (item.getItemId()) {
             case R.id.menu_settings:
+                // Open the settings activity.
                 Intent settingsIntent = new Intent(this, GeneralSettings.class);
                 startActivity(settingsIntent);
+                return true;
+            case R.id.menu_date_filter:
+                // Launch a date picker dialog to filter the Transactions between two dates.
+                buildAndShowDatePickerDialog(true);
+                return true;
+            case R.id.menu_clear_date_filter:
+                // Remove the filtered Transactions list observers and get all Transactions.
+                clearTransactionFilter();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    /**
+     * Clear the filter on the Transactions list, removing any Observers of the filtered Transaction
+     * list and observing changes to the full Transactions list from the ViewModel, updating all
+     * Fragments in the ViewPager.
+     */
+    public void clearTransactionFilter() {
+        // Remove any observers for the filtered Transactions list.
+        mTransactionViewModel.getFilteredTransactionsList(null, null).removeObservers(this);
+
+        // Get and observe the Transactions list for changes.
+        mTransactionViewModel.getTransactionsList().observe(this,
+                new Observer<List<Transaction>>() {
+                    @Override
+                    public void onChanged(@Nullable List<Transaction> transactions) {
+                        mViewPagerAdapter.updateFragments(transactions);
+                    }
+                });
+
+        // Edit the preferences to mark the list as no longer filtered.
+        mPrefs.edit().putBoolean(PREFS_FILTERED_BOOLEAN_KEY, false).apply();
+
+        // Invalidate the options menu to show the "Clear Filter" option now that a filter
+        // has been applied.
+        invalidateOptionsMenu();
+    }
+
+    /**
+     * Build and show a DatePickerDialog to get the dates to filter Transactions by.
+     * @param isFirstPicker: If true, then this is the first dialog, representing the "From" date
+     *                     in the filter range, otherwise the user is selecting the "To" date.
+     */
+    private void buildAndShowDatePickerDialog(boolean isFirstPicker) {
+        Calendar mInitialCalendar = Calendar.getInstance();
+        DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(
+                mDateSetListener,
+                mInitialCalendar.get(Calendar.YEAR),
+                mInitialCalendar.get(Calendar.MONTH),
+                mInitialCalendar.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.autoDismiss(true);
+
+        // Set the title of the DatePicker.
+        if (isFirstPicker) {
+            datePickerDialog.setTitle(getResources().getString(R.string.date_from));
+        } else {
+            datePickerDialog.setTitle(getResources().getString(R.string.date_to));
+        }
+
+        datePickerDialog.show(getFragmentManager(), "DatePickerDialog");
+    }
+
+    /**
+     * Handle the selection of the dates in the DatePickerDialog. Upon selecting the "To" date the
+     * Transactions list will be filtered in all Fragments in the ViewPager.
+     */
+    private DatePickerDialog.OnDateSetListener mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+        @Override
+        public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
+            Calendar mInitialCalendar = Calendar.getInstance();
+            mInitialCalendar.set(year, monthOfYear, dayOfMonth);
+
+            if (mSelectingFrom) {
+                // Set the "From" date and show another DatePickerDialog to select the "To" date.
+                mFromDate = mInitialCalendar.getTime();
+                mSelectingFrom = false;
+                buildAndShowDatePickerDialog(false);
+            } else {
+                // Select the "To" date and filter the Transactions list.
+                mToDate = mInitialCalendar.getTime();
+                mSelectingFrom = true;
+
+                // Save the chosen "From" and "To" dates in the preferences.
+                SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                prefsEditor.putLong(PREFS_DATE_FROM_LONG_KEY, mFromDate.getTime());
+                prefsEditor.putLong(PREFS_DATE_TO_LONG_KEY, mToDate.getTime());
+                // Mark the Transactions as being filtered.
+                prefsEditor.putBoolean(PREFS_FILTERED_BOOLEAN_KEY, true);
+                prefsEditor.apply();
+
+                // Invalidate the options menu to show the "Clear Filter" option now that a filter
+                // has been applied.
+                invalidateOptionsMenu();
+
+                filterTransactions(mFromDate, mToDate);
+            }
+        }
+    };
+
+    private void filterTransactions(Date from, Date to) {
+        // Remove any observers on the full Transactions list and observe the filtered list.
+        // Update all Fragments in the ViewPager with the filtered list.
+        mTransactionViewModel.getTransactionsList().removeObservers(mLifecycleOwner);
+        mTransactionViewModel.getFilteredTransactionsList(from, to).observe(mLifecycleOwner, new Observer<List<Transaction>>() {
+            @Override
+            public void onChanged(@Nullable List<Transaction> transactions) {
+                mViewPagerAdapter.updateFragments(transactions);
+            }
+        });
     }
 
     /**

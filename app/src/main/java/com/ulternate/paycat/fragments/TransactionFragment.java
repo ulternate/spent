@@ -1,13 +1,10 @@
 package com.ulternate.paycat.fragments;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -20,7 +17,6 @@ import com.ulternate.paycat.adapters.TransactionAdapter;
 import com.ulternate.paycat.adapters.TransactionDividerItemDecoration;
 import com.ulternate.paycat.adapters.TransactionOnClickListener;
 import com.ulternate.paycat.data.Transaction;
-import com.ulternate.paycat.data.TransactionViewModel;
 import com.ulternate.paycat.tasks.AddTransactionAsyncTask;
 
 import java.util.ArrayList;
@@ -31,7 +27,7 @@ import static android.app.Activity.RESULT_OK;
 /**
  * Fragment to show all transactions.
  */
-public class TransactionFragment extends Fragment {
+public class TransactionFragment extends BaseTransactionFragment {
 
     private static final int DETAIL_ACTIVITY_CODE = 1;
 
@@ -41,11 +37,6 @@ public class TransactionFragment extends Fragment {
 
     public TransactionFragment() {
         // Empty constructor.
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Nullable
@@ -72,20 +63,19 @@ public class TransactionFragment extends Fragment {
         TransactionDividerItemDecoration dividerItemDecoration = new TransactionDividerItemDecoration(getActivity());
         mRecyclerView.addItemDecoration(dividerItemDecoration);
 
-        // Set the TransactionViewModel.
-        TransactionViewModel mTransactionViewModel = ViewModelProviders.of(this).get(
-                TransactionViewModel.class);
-
-        // Get and observe the transactions list for changes.
-        mTransactionViewModel.getTransactionsList().observe(getActivity(),
-            new Observer<List<Transaction>>() {
-                @Override
-                public void onChanged(@Nullable List<Transaction> transactions) {
-                    mRecyclerViewAdapter.addTransactions(transactions);
-                }
-            });
+        // Get the list of Transactions, using any saved date filter, or all Transactions.
+        getTransactions();
 
         return mView;
+    }
+
+    /**
+     * Update this Fragments RecyclerView Adapter with a list of transactions.
+     * @param transactions: A List of Transaction objects (may or may not be filtered).
+     */
+    @Override
+    public void updateAdapter(List<Transaction> transactions) {
+        mRecyclerViewAdapter.addTransactions(transactions);
     }
 
     /**

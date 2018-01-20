@@ -55,13 +55,13 @@ public interface TransactionDao {
     LiveData<List<Transaction>> getTransactions();
 
     // Return all transactions of a particular category.
-    @Query("SELECT * FROM transactions WHERE category = :category")
+    @Query("SELECT * FROM transactions WHERE category = :category ORDER BY date DESC")
     LiveData<List<Transaction>> getTransactionsByCategory(String category);
 
-    @Query("SELECT * FROM transactions WHERE originalDescription = :originalDescription")
+    @Query("SELECT * FROM transactions WHERE originalDescription = :originalDescription ORDER BY date DESC")
     List<Transaction> getCategoriesForMerchant(String originalDescription);
 
     // Return all transactions between a date range.
-    @Query("SELECT * FROM transactions WHERE date BETWEEN :from AND :to")
+    @Query("SELECT * FROM transactions WHERE date BETWEEN :from AND :to ORDER BY date DESC")
     LiveData<List<Transaction>> getTransactionsBetweenDates(Date from, Date to);
 }

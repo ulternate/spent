@@ -40,7 +40,7 @@
 
         <activity
             android:name=".settings.GeneralSettings"
-            android:label="@string/settings"
+            android:label="@string/menu_settings"
             android:theme="@style/AppTheme"/>
 
         <service

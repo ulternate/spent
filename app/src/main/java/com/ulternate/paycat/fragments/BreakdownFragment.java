@@ -1,11 +1,8 @@
 package com.ulternate.paycat.fragments;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -21,7 +18,6 @@ import com.ulternate.paycat.adapters.BreakdownAdapter;
 import com.ulternate.paycat.adapters.BreakdownDataSet;
 import com.ulternate.paycat.adapters.BreakdownValueFormatter;
 import com.ulternate.paycat.data.Transaction;
-import com.ulternate.paycat.data.TransactionViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +25,7 @@ import java.util.List;
 /**
  * Fragment to show the breakdown of all categories.
  */
-public class BreakdownFragment extends Fragment {
+public class BreakdownFragment extends BaseTransactionFragment {
 
     private BreakdownAdapter mBreakdownAdapter;
     private PieChart mPieChart;
@@ -38,11 +34,6 @@ public class BreakdownFragment extends Fragment {
 
     public BreakdownFragment() {
         // Empty constructor.
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Nullable
@@ -71,26 +62,25 @@ public class BreakdownFragment extends Fragment {
         mBreakdownAdapter = new BreakdownAdapter(new ArrayList<Transaction>(), getContext());
         mRecyclerView.setAdapter(mBreakdownAdapter);
 
-        // Set the TransactionViewModel which holds all the Transactions.
-        TransactionViewModel mTransactionViewModel = ViewModelProviders.of(this).get(
-                TransactionViewModel.class);
-
-        // Get and observe the transactions list for future changes.
-        mTransactionViewModel.getTransactionsList().observe(getActivity(),
-                new Observer<List<Transaction>>() {
-                    @Override
-                    public void onChanged(@Nullable List<Transaction> transactions) {
-                        // Add the transactions to the DataSet and BreakdownAdapter.
-                        mDataSet.addTransactions(transactions);
-                        mBreakdownAdapter.addTransactions(transactions);
-                        // Notify the Data has changed and refresh the PieChart.
-                        mPieData.notifyDataChanged();
-                        mPieChart.notifyDataSetChanged();
-                        mPieChart.invalidate();
-                    }
-                });
+        // Get the list of Transactions, using any saved date filter, or all Transactions.
+        getTransactions();
 
         return rootView;
+    }
+
+    /**
+     * Update this Fragments Breakdown Adapter with a list of transactions.
+     * @param transactions: A List of Transaction objects (may or may not be filtered).
+     */
+    @Override
+    public void updateAdapter(List<Transaction> transactions) {
+        // Add the transactions to the DataSet and BreakdownAdapter.
+        mDataSet.addTransactions(transactions);
+        mBreakdownAdapter.addTransactions(transactions);
+        // Notify the Data has changed and refresh the PieChart.
+        mPieData.notifyDataChanged();
+        mPieChart.notifyDataSetChanged();
+        mPieChart.invalidate();
     }
 
     /**
