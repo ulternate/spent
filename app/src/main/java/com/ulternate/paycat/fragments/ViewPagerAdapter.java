@@ -5,6 +5,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
+import com.ulternate.paycat.data.Transaction;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,5 +65,16 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
     @Override
     public CharSequence getPageTitle(int position) {
         return mFragmentTitleList.get(position);
+    }
+
+    /**
+     * Update all Fragments with the new list of Transactions (i.e. from filtering Transactions).
+     * @param transactions: The list of Transaction objects.
+     */
+    public void updateFragments(List<Transaction> transactions) {
+        for (int i = 0; i < this.getCount(); i++) {
+            BaseTransactionFragment fragment = (BaseTransactionFragment) this.getItem(i);
+            fragment.updateAdapter(transactions);
+        }
     }
 }

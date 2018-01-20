@@ -1,17 +1,13 @@
 package com.ulternate.paycat.fragments;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -21,13 +17,9 @@ import com.ulternate.paycat.adapters.TransactionAdapter;
 import com.ulternate.paycat.adapters.TransactionDividerItemDecoration;
 import com.ulternate.paycat.adapters.TransactionOnClickListener;
 import com.ulternate.paycat.data.Transaction;
-import com.ulternate.paycat.data.TransactionViewModel;
 import com.ulternate.paycat.tasks.AddTransactionAsyncTask;
-import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
@@ -35,29 +27,16 @@ import static android.app.Activity.RESULT_OK;
 /**
  * Fragment to show all transactions.
  */
-public class TransactionFragment extends Fragment {
+public class TransactionFragment extends BaseTransactionFragment {
 
     private static final int DETAIL_ACTIVITY_CODE = 1;
 
-    private TransactionViewModel mTransactionViewModel;
     private TransactionAdapter mRecyclerViewAdapter;
     private Transaction mDeletedTransaction;
     private View mView;
 
-    private boolean mSelectingFrom = true;
-    private Date mFromDate;
-    private Date mToDate;
-
     public TransactionFragment() {
         // Empty constructor.
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        // Allow handling of option menu clicks in the fragment.
-        setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -84,110 +63,20 @@ public class TransactionFragment extends Fragment {
         TransactionDividerItemDecoration dividerItemDecoration = new TransactionDividerItemDecoration(getActivity());
         mRecyclerView.addItemDecoration(dividerItemDecoration);
 
-        // Set the TransactionViewModel.
-        mTransactionViewModel = ViewModelProviders.of(this).get(
-                TransactionViewModel.class);
-
-        // Get all the Transactions.
+        // Get all Transactions initially.
         getAllTransactions();
 
         return mView;
     }
 
     /**
-     * Observe the list of Transactions from the TransactionViewModel for changes initially adding
-     * all Transactions.
-     */
-    private void getAllTransactions() {
-        // Remove any observers for the filtered Transactions list.
-        mTransactionViewModel.getFilteredTransactionsList(mFromDate, mToDate).removeObservers(getActivity());
-
-        // Get and observe the Transactions list for changes.
-        mTransactionViewModel.getTransactionsList().observe(getActivity(),
-                new Observer<List<Transaction>>() {
-                    @Override
-                    public void onChanged(@Nullable List<Transaction> transactions) {
-                        mRecyclerViewAdapter.addTransactions(transactions);
-                    }
-                });
-    }
-
-    /**
-     * Handle the selection of particular MenuItems in the options menu.
-     * @param item: The MenuItem selected.
-     * @return boolean Return false to allow normal menu processing to
-     *         proceed, true to consume it here.
+     * Update this Fragments RecyclerView Adapter with a list of transactions.
+     * @param transactions: A List of Transaction objects (may or may not be filtered).
      */
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_date_filter:
-                // Launch a date picker dialog to filter the Transactions.
-                buildAndShowDatePickerDialog(true);
-                return true;
-            case R.id.menu_clear_date_filter:
-                // Remove the filtered Transactions list observers and get all Transactions.
-                getAllTransactions();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
+    public void updateAdapter(List<Transaction> transactions) {
+        mRecyclerViewAdapter.addTransactions(transactions);
     }
-
-    /**
-     * Build and show a DatePickerDialog to get the dates to filter Transactions by.
-     * @param isFirstPicker: If true, then this is the first dialog, representing the "From" date
-     *                     in the filter range, otherwise the user is selecting the "To" date.
-     */
-    private void buildAndShowDatePickerDialog(boolean isFirstPicker) {
-        Calendar mInitialCalendar = Calendar.getInstance();
-        DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(
-                mDateSetListener,
-                mInitialCalendar.get(Calendar.YEAR),
-                mInitialCalendar.get(Calendar.MONTH),
-                mInitialCalendar.get(Calendar.DAY_OF_MONTH)
-        );
-        datePickerDialog.autoDismiss(true);
-
-        // Set the title of the DatePicker.
-        if (isFirstPicker) {
-            datePickerDialog.setTitle(getResources().getString(R.string.date_from));
-        } else {
-            datePickerDialog.setTitle(getResources().getString(R.string.date_to));
-        }
-
-        datePickerDialog.show(getActivity().getFragmentManager(), "DatePickerDialog");
-    }
-
-    /**
-     * Handle the selection of the date in the DatePickerDialog.
-     */
-    private DatePickerDialog.OnDateSetListener mDateSetListener = new DatePickerDialog.OnDateSetListener() {
-        @Override
-        public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-            Calendar mInitialCalendar = Calendar.getInstance();
-            mInitialCalendar.set(year, monthOfYear, dayOfMonth);
-
-            if (mSelectingFrom) {
-                mFromDate = mInitialCalendar.getTime();
-                mSelectingFrom = false;
-                buildAndShowDatePickerDialog(false);
-            } else {
-                mToDate = mInitialCalendar.getTime();
-                mSelectingFrom = true;
-
-                // Remove any observers on the full Transactions list and observe the filtered list.
-                // This applies the filter to the RecyclerView.
-                mTransactionViewModel.getTransactionsList().removeObservers(getActivity());
-                mTransactionViewModel.getFilteredTransactionsList(mFromDate, mToDate).observe(getActivity(), new Observer<List<Transaction>>() {
-                    @Override
-                    public void onChanged(@Nullable List<Transaction> transactions) {
-                        mRecyclerViewAdapter.addTransactions(transactions);
-                    }
-                });
-            }
-        }
-    };
 
     /**
      * OnClickListener to start the DetailActivity when a Transaction is clicked on.
