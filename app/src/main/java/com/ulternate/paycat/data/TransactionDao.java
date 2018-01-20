@@ -51,7 +51,7 @@ public interface TransactionDao {
     Transaction getTransactionById(int id);
 
     // Return all transaction records.
-    @Query("SELECT * FROM transactions")
+    @Query("SELECT * FROM transactions ORDER BY date DESC")
     LiveData<List<Transaction>> getTransactions();
 
     // Return all transactions of a particular category.

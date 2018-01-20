@@ -11,7 +11,7 @@ import com.ulternate.paycat.R;
 import com.ulternate.paycat.activities.MainActivity;
 import com.ulternate.paycat.data.Transaction;
 
-import java.util.Currency;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 
@@ -69,9 +69,9 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
      */
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        // Get the currency from the current Locale and prepend the symbol to the amount.
-        Currency currency = Currency.getInstance(Locale.getDefault());
-        String qualifiedAmount = currency.getSymbol() + String.valueOf(mTransactionsList.get(position).amount);
+        // Format the amount as a currency based upon the locale.
+        NumberFormat numberFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+        String qualifiedAmount = numberFormat.format(mTransactionsList.get(position).amount);
 
         holder.transactionAmount.setText(qualifiedAmount);
         holder.transactionDate.setText(MainActivity.TRANSACTION_DATE_FORMAT.format(mTransactionsList.get(position).date));
