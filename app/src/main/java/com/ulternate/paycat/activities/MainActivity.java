@@ -6,9 +6,6 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -89,21 +86,20 @@ public class MainActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
 
-        // Tint the settings icon to white.
-        Drawable settingsIcon = menu.findItem(R.id.menu_settings).getIcon();
-        if (settingsIcon != null) {
-            settingsIcon.mutate();
-            settingsIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
-        }
-
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * Handle menu item selections.
+     * @param item: The MenuItem that was selected.
+     * @return boolean Return false to allow normal menu processing to
+     *         proceed, true to consume it here.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         switch (item.getItemId()) {
             case R.id.menu_settings:
+                // Open the settings activity.
                 Intent settingsIntent = new Intent(this, GeneralSettings.class);
                 startActivity(settingsIntent);
                 return true;

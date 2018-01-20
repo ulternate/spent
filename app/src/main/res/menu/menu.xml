@@ -4,7 +4,17 @@
 
     <item
         android:id="@+id/menu_settings"
-        android:title="@string/settings"
-        app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_settings_black_24dp"/>
+        android:title="@string/menu_settings"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_date_filter"
+        android:title="@string/menu_date_filter"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_clear_date_filter"
+        android:title="@string/menu_clear_date_filter"
+        app:showAsAction="never" />
+
 </menu>
