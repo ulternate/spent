@@ -118,6 +118,9 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         // Get the DefaultSharedPreferences.
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        // Get a Calendar instance to store the initial Transaction date.
+        mInitialCalendar = Calendar.getInstance();
+
         // Get all the categories, both the default and custom categories.
         mCategories = getCategories();
 
@@ -147,8 +150,6 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
 
         // The following are used by the date and time pickers.
         mFragmentManager = getFragmentManager();
-        mInitialCalendar = Calendar.getInstance();
-
 
         // Show the mapFragment and use the Transaction location if the permission was granted and
         // the location is not set to the default 0.0.
@@ -226,6 +227,8 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         mAmount.setText(String.valueOf(transaction.amount));
         mDescription.setText(transaction.description);
         mDate.setText(MainActivity.TRANSACTION_DATE_FORMAT.format(transaction.date));
+        // Set the initial Calendar instance time to the Transaction date.
+        mInitialCalendar.setTime(transaction.date);
 
         // Set the category spinner, filling in the Category "Other" EditText if the category
         // can't be found in the list of values in the spinner.
@@ -321,7 +324,9 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             mTransaction.category = mCategorySelection;
         }
 
+        // Update the date and Calendar instance.
         mTransaction.date = mDateVal;
+        mInitialCalendar.setTime(mDateVal);
 
         // Update the transaction in the database.
         new UpdateTransactionAsyncTask(getApplicationContext()).execute(mTransaction);
@@ -420,7 +425,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             editText.setTextIsSelectable(true);
             editText.setCursorVisible(true);
             editText.setOnClickListener(mEnabledOnClickListener);
-            editText.setOnFocusChangeListener(mEnabledOnFocuseChangeListener);
+            editText.setOnFocusChangeListener(mEnabledOnFocusChangeListener);
         }
 
         // Set the input types for the fields.
@@ -550,7 +555,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     /**
      * Force the Soft keyboard to show on focus changed for the EditText fields.
      */
-    private View.OnFocusChangeListener mEnabledOnFocuseChangeListener = new View.OnFocusChangeListener() {
+    private View.OnFocusChangeListener mEnabledOnFocusChangeListener = new View.OnFocusChangeListener() {
         @Override
         public void onFocusChange(View v, boolean hasFocus) {
             mInputMethodManager.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
@@ -565,7 +570,8 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         public void onClick(View v) {
             // Hide any open soft keyboards.
             mInputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-            // Build and show the DatePickerDialog, dismissing on selection.
+            // Build and show the DatePickerDialog, dismissing on selection. The selected date uses
+            // the initial Transaction date.
             DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(
                     DetailActivity.this,
                     mInitialCalendar.get(Calendar.YEAR),
