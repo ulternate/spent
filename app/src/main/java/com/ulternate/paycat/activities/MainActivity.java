@@ -8,8 +8,10 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -46,6 +48,10 @@ import java.util.List;
  */
 public class MainActivity extends AppCompatActivity {
 
+    public static final String PREFS_FILTERED_BOOLEAN_KEY = "filtered";
+    public static final String PREFS_DATE_FROM_LONG_KEY = "dateFrom";
+    public static final String PREFS_DATE_TO_LONG_KEY = "dateTo";
+
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
     private static final int REQUEST_PERMISSIONS_LOCATION_CODE = 2;
@@ -55,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private View mView;
     private ViewPagerAdapter mViewPagerAdapter;
 
+    private SharedPreferences mPrefs;
     private boolean mSelectingFrom = true;
     private Date mFromDate;
     private Date mToDate;
@@ -96,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
         // Check access to the location permission, requesting access if required.
         checkLocationPermission();
 
+        // Get the DefaultSharedPreferences.
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
         // Get an instance of the TransactionViewModel to be used for all subclasses.
         mTransactionViewModel = ViewModelProviders.of(this).get(
                 TransactionViewModel.class);
@@ -110,6 +120,21 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
+
+        // Update the menu items depending on if the Transactions list is filtered or no.
+        MenuItem setFilter = menu.findItem(R.id.menu_date_filter);
+        MenuItem clearFilter = menu.findItem(R.id.menu_clear_date_filter);
+        if (mPrefs.getBoolean(PREFS_FILTERED_BOOLEAN_KEY, false)) {
+            // Change the wording of the setFilter option to the edit option.
+            setFilter.setTitle(getResources().getString(R.string.menu_date_filter_edit));
+            // Show the clearFilter option.
+            clearFilter.setVisible(true);
+        } else {
+            // Change the wording back to the original value for the setFilter option.
+            setFilter.setTitle(getResources().getString(R.string.menu_date_filter));
+            // Hide the clearFilter option.
+            clearFilter.setVisible(false);
+        }
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -158,6 +183,13 @@ public class MainActivity extends AppCompatActivity {
                         mViewPagerAdapter.updateFragments(transactions);
                     }
                 });
+
+        // Edit the preferences to mark the list as no longer filtered.
+        mPrefs.edit().putBoolean(PREFS_FILTERED_BOOLEAN_KEY, false).apply();
+
+        // Invalidate the options menu to show the "Clear Filter" option now that a filter
+        // has been applied.
+        invalidateOptionsMenu();
     }
 
     /**
@@ -205,18 +237,34 @@ public class MainActivity extends AppCompatActivity {
                 mToDate = mInitialCalendar.getTime();
                 mSelectingFrom = true;
 
-                // Remove any observers on the full Transactions list and observe the filtered list.
-                // Update all Fragments in the ViewPager with the filtered list.
-                mTransactionViewModel.getTransactionsList().removeObservers(mLifecycleOwner);
-                mTransactionViewModel.getFilteredTransactionsList(mFromDate, mToDate).observe(mLifecycleOwner, new Observer<List<Transaction>>() {
-                    @Override
-                    public void onChanged(@Nullable List<Transaction> transactions) {
-                        mViewPagerAdapter.updateFragments(transactions);
-                    }
-                });
+                // Save the chosen "From" and "To" dates in the preferences.
+                SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                prefsEditor.putLong(PREFS_DATE_FROM_LONG_KEY, mFromDate.getTime());
+                prefsEditor.putLong(PREFS_DATE_TO_LONG_KEY, mToDate.getTime());
+                // Mark the Transactions as being filtered.
+                prefsEditor.putBoolean(PREFS_FILTERED_BOOLEAN_KEY, true);
+                prefsEditor.apply();
+
+                // Invalidate the options menu to show the "Clear Filter" option now that a filter
+                // has been applied.
+                invalidateOptionsMenu();
+
+                filterTransactions(mFromDate, mToDate);
             }
         }
     };
+
+    private void filterTransactions(Date from, Date to) {
+        // Remove any observers on the full Transactions list and observe the filtered list.
+        // Update all Fragments in the ViewPager with the filtered list.
+        mTransactionViewModel.getTransactionsList().removeObservers(mLifecycleOwner);
+        mTransactionViewModel.getFilteredTransactionsList(from, to).observe(mLifecycleOwner, new Observer<List<Transaction>>() {
+            @Override
+            public void onChanged(@Nullable List<Transaction> transactions) {
+                mViewPagerAdapter.updateFragments(transactions);
+            }
+        });
+    }
 
     /**
      * Check if the notification service is enabled.

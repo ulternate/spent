@@ -63,9 +63,10 @@
         <item>Water</item>
     </string-array>
 
-    <!-- Strings related to Settings. -->
+    <!-- Strings related to Settings and the OptionsMenu. -->
     <string name="menu_settings">Settings</string>
     <string name="menu_date_filter">Filter Transactions</string>
+    <string name="menu_date_filter_edit">Edit Filter</string>
     <string name="menu_clear_date_filter">Remove Filter</string>
     <!-- Matching Transaction settings. -->
     <string name="pref_category_match_transactions">Transaction Matching</string>

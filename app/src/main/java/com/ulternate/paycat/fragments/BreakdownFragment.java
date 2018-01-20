@@ -62,8 +62,8 @@ public class BreakdownFragment extends BaseTransactionFragment {
         mBreakdownAdapter = new BreakdownAdapter(new ArrayList<Transaction>(), getContext());
         mRecyclerView.setAdapter(mBreakdownAdapter);
 
-        // Get all Transactions initially.
-        getAllTransactions();
+        // Get the list of Transactions, using any saved date filter, or all Transactions.
+        getTransactions();
 
         return rootView;
     }

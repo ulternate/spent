@@ -63,8 +63,8 @@ public class TransactionFragment extends BaseTransactionFragment {
         TransactionDividerItemDecoration dividerItemDecoration = new TransactionDividerItemDecoration(getActivity());
         mRecyclerView.addItemDecoration(dividerItemDecoration);
 
-        // Get all Transactions initially.
-        getAllTransactions();
+        // Get the list of Transactions, using any saved date filter, or all Transactions.
+        getTransactions();
 
         return mView;
     }
