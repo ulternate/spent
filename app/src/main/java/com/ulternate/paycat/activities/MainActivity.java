@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences mPrefs;
     private boolean mSelectingFrom = true;
     private Date mFromDate;
-    private Date mToDate;
 
     // Date form used to format Date objects as desired.
     @SuppressLint("SimpleDateFormat")
@@ -198,7 +197,21 @@ public class MainActivity extends AppCompatActivity {
      *                     in the filter range, otherwise the user is selecting the "To" date.
      */
     private void buildAndShowDatePickerDialog(boolean isFirstPicker) {
-        Calendar mInitialCalendar = Calendar.getInstance();
+        // Get Calendar instances to store the "From" and "To" selections used previously.
+        Calendar mFromCalendar = Calendar.getInstance();
+        Calendar mToCalendar = Calendar.getInstance();
+
+        // Update the "From" and "To" Calendars to use the previous filter values if a filter has
+        // been applied.
+        if (mPrefs.getBoolean(PREFS_FILTERED_BOOLEAN_KEY, false)) {
+            if (mPrefs.contains(PREFS_DATE_FROM_LONG_KEY) && mPrefs.contains(PREFS_DATE_TO_LONG_KEY)) {
+                mFromCalendar.setTimeInMillis(mPrefs.getLong(PREFS_DATE_FROM_LONG_KEY, 0));
+                mToCalendar.setTimeInMillis(mPrefs.getLong(PREFS_DATE_TO_LONG_KEY, 0));
+            }
+        }
+
+        // Build and show the DatePickerDialog.
+        Calendar mInitialCalendar = isFirstPicker ? mFromCalendar : mToCalendar;
         DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(
                 mDateSetListener,
                 mInitialCalendar.get(Calendar.YEAR),
@@ -234,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
                 buildAndShowDatePickerDialog(false);
             } else {
                 // Select the "To" date and filter the Transactions list.
-                mToDate = mInitialCalendar.getTime();
+                Date mToDate = mInitialCalendar.getTime();
                 mSelectingFrom = true;
 
                 // Save the chosen "From" and "To" dates in the preferences.
