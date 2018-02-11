@@ -75,7 +75,9 @@ public class TransactionFragment extends BaseTransactionFragment {
      */
     @Override
     public void updateAdapter(List<Transaction> transactions) {
-        mRecyclerViewAdapter.addTransactions(transactions);
+        if (mRecyclerViewAdapter != null) {
+            mRecyclerViewAdapter.addTransactions(transactions);
+        }
     }
 
     /**

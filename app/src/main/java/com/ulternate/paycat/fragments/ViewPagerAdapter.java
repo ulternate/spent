@@ -74,7 +74,9 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
     public void updateFragments(List<Transaction> transactions) {
         for (int i = 0; i < this.getCount(); i++) {
             BaseTransactionFragment fragment = (BaseTransactionFragment) this.getItem(i);
-            fragment.updateAdapter(transactions);
+            if (fragment != null) {
+                fragment.updateAdapter(transactions);
+            }
         }
     }
 }

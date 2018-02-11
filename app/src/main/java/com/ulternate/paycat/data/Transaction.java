@@ -1,10 +1,16 @@
 package com.ulternate.paycat.data;
 
+import android.annotation.SuppressLint;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
+import android.provider.CalendarContract;
+
+import com.ulternate.paycat.activities.MainActivity;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -60,5 +66,9 @@ public class Transaction implements Serializable{
         this.date = date;
         this.latitude = latitude;
         this.longitude = longitude;
+    }
+
+    public String getDateStringMinusTime() {
+        return MainActivity.DATE_FORMAT_NO_TIME.format(this.date);
     }
 }

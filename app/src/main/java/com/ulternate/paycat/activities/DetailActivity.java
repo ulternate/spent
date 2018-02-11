@@ -34,6 +34,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.ulternate.paycat.R;
 import com.ulternate.paycat.data.Transaction;
+import com.ulternate.paycat.data.Utils;
 import com.ulternate.paycat.tasks.DeleteTransactionAsyncTask;
 import com.ulternate.paycat.tasks.UpdateTransactionAsyncTask;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -43,7 +44,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -55,8 +55,6 @@ import fr.ganfra.materialspinner.MaterialSpinner;
  */
 public class DetailActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener,
         TimePickerDialog.OnTimeSetListener, OnMapReadyCallback {
-
-    private static final String CUSTOM_CATEGORIES_ARRAY = "custom_categories_array";
 
     // The Transaction being viewed/edited.
     private Transaction mTransaction;
@@ -122,7 +120,11 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
         mInitialCalendar = Calendar.getInstance();
 
         // Get all the categories, both the default and custom categories.
-        mCategories = getCategories();
+        String[] originalCategories = getResources().getStringArray(R.array.default_categories);
+        String[] extraCategories = {
+                getResources().getString(R.string.category_unknown),
+                getResources().getString(R.string.category_other)};
+        mCategories = Utils.getCategories(originalCategories, mPrefs, extraCategories);
 
         // Set the adapter for the spinner.
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, mCategories);
@@ -333,44 +335,13 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
     }
 
     /**
-     * Get the updated list of categories, including the custom ones added using the "Other" field.
-     * @return an ArrayList of Strings representing the default and custom categories.
-     */
-    private List<String> getCategories() {
-        String[] originalCategories = getResources().getStringArray(R.array.default_categories);
-
-        List<String> allCategories = new ArrayList<>(Arrays.asList(originalCategories));
-
-        String added_categories_array = mPrefs.getString(CUSTOM_CATEGORIES_ARRAY, "");
-
-        // Add any custom categories.
-        if (!added_categories_array.isEmpty()) {
-            String[] added_categories = added_categories_array.split("\\|");
-            for (String category: added_categories) {
-                if (!allCategories.contains(category)) {
-                    allCategories.add(category);
-                }
-            }
-        }
-
-        // Sort the categories.
-        Collections.sort(allCategories, String.CASE_INSENSITIVE_ORDER);
-
-        // Add the Unknown and Other categories to the end of the list.
-        allCategories.add(getResources().getString(R.string.category_unknown));
-        allCategories.add(getResources().getString(R.string.category_other));
-
-        return allCategories;
-    }
-
-    /**
      * Add the new custom category to the preferences.
      * @param newCategory: The custom category saved by the user.
      */
     private void updateCategories(String newCategory) {
 
         // Get the existing custom_categories.
-        String custom_categories_array = mPrefs.getString(CUSTOM_CATEGORIES_ARRAY, "");
+        String custom_categories_array = mPrefs.getString(MainActivity.PREFS_CUSTOM_CATEGORIES_ARRAY, "");
 
         if (!custom_categories_array.isEmpty()) {
             String[] custom_categories = custom_categories_array.split("\\|");
@@ -382,7 +353,7 @@ public class DetailActivity extends AppCompatActivity implements DatePickerDialo
             custom_categories_array = newCategory;
         }
 
-        mPrefs.edit().putString(CUSTOM_CATEGORIES_ARRAY, custom_categories_array).apply();
+        mPrefs.edit().putString(MainActivity.PREFS_CUSTOM_CATEGORIES_ARRAY, custom_categories_array).apply();
     }
 
     /**

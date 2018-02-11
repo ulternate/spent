@@ -33,6 +33,7 @@ import com.ulternate.paycat.R;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
 import com.ulternate.paycat.fragments.BreakdownFragment;
+import com.ulternate.paycat.fragments.CategoryBreakdownFragment;
 import com.ulternate.paycat.fragments.TransactionFragment;
 import com.ulternate.paycat.fragments.ViewPagerAdapter;
 import com.ulternate.paycat.settings.GeneralSettings;
@@ -46,11 +47,14 @@ import java.util.List;
 /**
  * Main activity for the application.
  */
+@SuppressLint("SimpleDateFormat")
 public class MainActivity extends AppCompatActivity {
 
     public static final String PREFS_FILTERED_BOOLEAN_KEY = "filtered";
     public static final String PREFS_DATE_FROM_LONG_KEY = "dateFrom";
     public static final String PREFS_DATE_TO_LONG_KEY = "dateTo";
+    public static final String PREFS_CUSTOM_CATEGORIES_ARRAY = "custom_categories_array";
+    public static final String PREFS_CHOSEN_CATEGORY_BREAKDOWN = "chosen_category";
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
@@ -66,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
     private Date mFromDate;
 
     // Date form used to format Date objects as desired.
-    @SuppressLint("SimpleDateFormat")
     public static final SimpleDateFormat TRANSACTION_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd h:mm a");
+    public static final SimpleDateFormat DATE_FORMAT_NO_TIME = new SimpleDateFormat("dd/MM/yyyy");
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +92,8 @@ public class MainActivity extends AppCompatActivity {
         mViewPagerAdapter.addFragment(new TransactionFragment(), getResources().getString(R.string.tab_transactions));
         // Add BreakdownItem fragment.
         mViewPagerAdapter.addFragment(new BreakdownFragment(), getResources().getString(R.string.tab_breakdown));
+        // Add Category breakdown fragment.
+        mViewPagerAdapter.addFragment(new CategoryBreakdownFragment(), "Category");
         viewPager.setAdapter(mViewPagerAdapter);
 
         // Set up the TabLayout.

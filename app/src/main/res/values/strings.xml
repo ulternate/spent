@@ -26,11 +26,15 @@
     <string name="description_error">Please enter a description for the transaction</string>
     <string name="description_hint">Recipient</string>
     <string name="category">Category</string>
+    <string name="category_breakdown_instructions">Choose a category to view the individual breakdown</string>
+    <string name="category_breakdown_no_transactions_for_category">There are no Transactions recorded under this category, try selecting a different category</string>
+    <string name="category_breakdown_no_transactions_for_category_filtered">There are no Transactions recorded under this category in the current date range, select a different category or try modifying the date range</string>
     <string name="category_error">Please select a category for the transaction</string>
     <string name="category_hint">@string/category</string>
     <string name="category_other">Other</string>
     <string name="category_other_hint">Custom Category</string>
     <string name="category_other_error">Please enter a custom category for the transaction</string>
+    <string name="category_selected">\$%1$.2f spent on %2$s</string>
     <string name="category_unknown">Unknown</string>
     <string name="edit">Edit</string>
     <string name="save">Save</string>
@@ -42,6 +46,7 @@
     <string name="delete_transaction_message">This will delete this record, are you sure you wish to continue?</string>
     <string name="delete_transaction_success_message">Transaction \"%1$s\" was deleted</string>
     <string name="location">Location</string>
+    <string name="no_transactions_category_breakdown">Individual transaction category breakdowns will be visible here after transactions have been recorded</string>
     <string name="total">Total</string>
     <string name="undo">UNDO</string>
     <string-array name="default_categories">
