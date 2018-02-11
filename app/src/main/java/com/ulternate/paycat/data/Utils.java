@@ -1,6 +1,8 @@
 package com.ulternate.paycat.data;
 
 import android.content.SharedPreferences;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 
 import com.ulternate.paycat.activities.MainActivity;
 
@@ -65,5 +67,17 @@ public class Utils {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Configure the LayoutParams for SnackBars to show them above the BottomNavMenu.
+     * @param snackbar: The SnackBar object to be configured and shown.
+     */
+    public static void showSnackbarAboveBottomNavMenu(Snackbar snackbar) {
+        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams)
+                snackbar.getView().getLayoutParams();
+        params.setMargins(0, 0, 0, MainActivity.mBottomNavigationView.getHeight());
+        snackbar.getView().setLayoutParams(params);
+        snackbar.show();
     }
 }

@@ -17,6 +17,7 @@ import com.ulternate.paycat.adapters.TransactionAdapter;
 import com.ulternate.paycat.adapters.TransactionDividerItemDecoration;
 import com.ulternate.paycat.adapters.TransactionOnClickListener;
 import com.ulternate.paycat.data.Transaction;
+import com.ulternate.paycat.data.Utils;
 import com.ulternate.paycat.tasks.AddTransactionAsyncTask;
 
 import java.util.ArrayList;
@@ -116,7 +117,8 @@ public class TransactionFragment extends BaseTransactionFragment {
                 String msg = getResources().getString(
                         R.string.delete_transaction_success_message, mDeletedTransaction.description);
                 Snackbar deletedSnackbar = Snackbar.make(mView, msg, Snackbar.LENGTH_LONG);
-                deletedSnackbar.setAction(getResources().getString(R.string.undo), mUndoDeletionListener).show();
+                deletedSnackbar.setAction(getResources().getString(R.string.undo), mUndoDeletionListener);
+                Utils.showSnackbarAboveBottomNavMenu(deletedSnackbar);
             }
         }
     }

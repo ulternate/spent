@@ -278,7 +278,8 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
             String dateString = Utils.getDateFromLong(MainActivity.DATE_FORMAT_NO_TIME, (long) e.getX());
             if (dateString != null) {
                 String msg = getResources().getString(R.string.category_selected, e.getY(), dateString);
-                Snackbar.make(getView(), msg, Snackbar.LENGTH_LONG).show();
+                Snackbar selectedValSnackBar = Snackbar.make(getView(), msg, Snackbar.LENGTH_LONG);
+                Utils.showSnackbarAboveBottomNavMenu(selectedValSnackBar);
             }
         }
     }

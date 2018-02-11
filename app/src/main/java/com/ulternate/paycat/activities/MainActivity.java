@@ -32,6 +32,7 @@ import android.view.View;
 import com.ulternate.paycat.R;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
+import com.ulternate.paycat.data.Utils;
 import com.ulternate.paycat.fragments.BreakdownFragment;
 import com.ulternate.paycat.fragments.CategoryBreakdownFragment;
 import com.ulternate.paycat.fragments.TransactionFragment;
@@ -55,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String PREFS_DATE_TO_LONG_KEY = "dateTo";
     public static final String PREFS_CUSTOM_CATEGORIES_ARRAY = "custom_categories_array";
     public static final String PREFS_CHOSEN_CATEGORY_BREAKDOWN = "chosen_category";
+
+    public static BottomNavigationView mBottomNavigationView;
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
@@ -98,8 +101,8 @@ public class MainActivity extends AppCompatActivity {
         mViewPager.setAdapter(mViewPagerAdapter);
 
         // Set up the BottomNavMenu.
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationSelectedListener);
+        mBottomNavigationView = findViewById(R.id.bottom_navigation);
+        mBottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationSelectedListener);
 
         // Prompt the user to enable the notification listener service if they haven't.
         if (!isNotificationServiceEnabled()) {
@@ -423,9 +426,10 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     // Alert the user that the location of the transaction won't be saved when a
                     // notification is received.
-                    Snackbar.make(mView,
+                    Snackbar locationSnackbar = Snackbar.make(mView,
                             getResources().getString(R.string.location_permission_denied),
-                            Snackbar.LENGTH_SHORT).show();
+                            Snackbar.LENGTH_SHORT);
+                    Utils.showSnackbarAboveBottomNavMenu(locationSnackbar);
                 }
             }
         }
