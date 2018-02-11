@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_transactions"
+        android:enabled="true"
+        android:icon="@drawable/ic_list_black_24dp"
+        android:title="@string/tab_transactions"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_breakdown"
+        android:enabled="true"
+        android:icon="@drawable/ic_pie_chart_black_24dp"
+        android:title="@string/tab_breakdown"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_category_breakdown"
+        android:enabled="true"
+        android:icon="@drawable/ic_timeline_black_24dp"
+        android:title="@string/tab_category_breakdown"
+        app:showAsAction="ifRoom" />
+</menu>

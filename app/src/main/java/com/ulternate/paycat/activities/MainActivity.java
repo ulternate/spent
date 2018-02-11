@@ -15,8 +15,8 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
 import android.support.v13.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private LifecycleOwner mLifecycleOwner;
     private TransactionViewModel mTransactionViewModel;
     private View mView;
+    private ViewPager mViewPager;
     private ViewPagerAdapter mViewPagerAdapter;
 
     private SharedPreferences mPrefs;
@@ -86,19 +87,19 @@ public class MainActivity extends AppCompatActivity {
         mLifecycleOwner = this;
 
         // Get the ViewPager, set the adapter and add the required fragments.
-        ViewPager viewPager = findViewById(R.id.viewpager);
+        mViewPager = findViewById(R.id.viewpager);
         mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
         // Add Transactions list fragment.
         mViewPagerAdapter.addFragment(new TransactionFragment(), getResources().getString(R.string.tab_transactions));
         // Add BreakdownItem fragment.
         mViewPagerAdapter.addFragment(new BreakdownFragment(), getResources().getString(R.string.tab_breakdown));
         // Add Category breakdown fragment.
-        mViewPagerAdapter.addFragment(new CategoryBreakdownFragment(), "Category");
-        viewPager.setAdapter(mViewPagerAdapter);
+        mViewPagerAdapter.addFragment(new CategoryBreakdownFragment(), getResources().getString(R.string.tab_category_breakdown));
+        mViewPager.setAdapter(mViewPagerAdapter);
 
-        // Set up the TabLayout.
-        TabLayout tabLayout = findViewById(R.id.tabLayout);
-        tabLayout.setupWithViewPager(viewPager);
+        // Set up the BottomNavMenu.
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationSelectedListener);
 
         // Prompt the user to enable the notification listener service if they haven't.
         if (!isNotificationServiceEnabled()) {
@@ -284,6 +285,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationSelectedListener =
+            new BottomNavigationView.OnNavigationItemSelectedListener() {
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_transactions:
+                    mViewPager.setCurrentItem(0);
+                    break;
+                case R.id.action_breakdown:
+                    mViewPager.setCurrentItem(1);
+                    break;
+                case R.id.action_category_breakdown:
+                    mViewPager.setCurrentItem(2);
+                    break;
+            }
+            return true;
+        }
+    };
 
     /**
      * Check if the notification service is enabled.
