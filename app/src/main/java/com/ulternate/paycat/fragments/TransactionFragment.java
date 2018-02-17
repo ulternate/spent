@@ -40,6 +40,19 @@ public class TransactionFragment extends BaseTransactionFragment {
         // Empty constructor.
     }
 
+    /**
+     * Initialise the Adapters and DataSets and other fields required by the Fragment.
+     * @param savedInstanceState: If the activity is being re-initialized after previously being
+     *                          shut down then this Bundle contains the data it most recently
+     *                          supplied in onSaveInstanceState. Note: Otherwise it is null.
+     */
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mRecyclerViewAdapter = new TransactionAdapter(new ArrayList<Transaction>(), mTransactionOnClickListener);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -56,7 +69,6 @@ public class TransactionFragment extends BaseTransactionFragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // Specify the adapter for the RecyclerView.
-        mRecyclerViewAdapter = new TransactionAdapter(new ArrayList<Transaction>(), mTransactionOnClickListener);
         mRecyclerView.setAdapter(mRecyclerViewAdapter);
 
         // Assign a custom DividerItemDecoration to set the margins between list items in the
@@ -76,9 +88,7 @@ public class TransactionFragment extends BaseTransactionFragment {
      */
     @Override
     public void updateAdapter(List<Transaction> transactions) {
-        if (mRecyclerViewAdapter != null) {
-            mRecyclerViewAdapter.addTransactions(transactions);
-        }
+        mRecyclerViewAdapter.addTransactions(transactions);
     }
 
     /**

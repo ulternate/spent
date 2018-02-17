@@ -16,6 +16,8 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.LimitLine;
+import com.github.mikephil.charting.components.LimitLine.LimitLabelPosition;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -31,6 +33,7 @@ import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.Utils;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 
@@ -56,18 +59,43 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
     private CategoryBreakdownDataSet mDataSet;
     private LineData mChartData;
     private LineChart mChart;
+    private float mValueTextSize = 12f;
+    private int mPlotColour;
+    private int mLimitColour;
 
     public CategoryBreakdownFragment() {
         // Empty constructor.
+    }
+
+    /**
+     * Initialise the Adapters and DataSets and other fields required by the Fragment.
+     * @param savedInstanceState: If the activity is being re-initialized after previously being
+     *                          shut down then this Bundle contains the data it most recently
+     *                          supplied in onSaveInstanceState. Note: Otherwise it is null.
+     */
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Get the DefaultSharedPreferences.
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+
+        // Initialise the DataSet and LineData.
+        mDataSet = new CategoryBreakdownDataSet(new ArrayList<Entry>(), "Category breakdown", mPrefs);
+        mChartData = new LineData(mDataSet);
+
+        // Get the chosen category if it exists.
+        mChosenCategory = mPrefs.getString(MainActivity.PREFS_CHOSEN_CATEGORY_BREAKDOWN, "");
+
+        // Get the default plot colours.
+        mPlotColour = ContextCompat.getColor(getContext(), R.color.colorPrimaryDark);
+        mLimitColour = ContextCompat.getColor(getContext(), R.color.colorAccentRed);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View mView = inflater.inflate(R.layout.fragment_category_breakdown, container, false);
-
-        // Get the DefaultSharedPreferences.
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
 
         // Get the filtering views.
         mCategoryCard = mView.findViewById(R.id.categoryBreakdownSelectionCard);
@@ -78,11 +106,9 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
         // Find and configure the LineChart and it's DataSet.
         mChartCard = mView.findViewById(R.id.categoryBreakdownChartCard);
         mChart = mView.findViewById(R.id.categoryBreakdownChart);
-        mDataSet = new CategoryBreakdownDataSet(new ArrayList<Entry>(), "Category breakdown", mPrefs);
         configureChart(mChart, mDataSet);
 
         // Set the DataSet holder and assign it to the LineChart.
-        mChartData = new LineData(mDataSet);
         mChart.setData(mChartData);
         mChart.invalidate();
 
@@ -102,7 +128,6 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
         // Set the initial selection of the spinner if one has been saved previously.
         // Note, MaterialSpinner prepends the hint to the list so we must add 1 to the position for
         // selection to select the correct item.
-        mChosenCategory = mPrefs.getString(MainActivity.PREFS_CHOSEN_CATEGORY_BREAKDOWN, "");
         if (mCategories.contains(mChosenCategory)) {
             mCategorySpinner.setSelection(mCategories.indexOf(mChosenCategory) + 1);
         }
@@ -111,6 +136,18 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
         getTransactions();
 
         return mView;
+    }
+
+    /**
+     * Update the visibility of a View, but only if they are not null (e.g. have been initialised).
+     * @param view: The View being updated.
+     * @param visibility: The View's visibility setting, e.g. View.VISIBLE.
+     */
+    private void updateViewVisibility(View view, int visibility) {
+        // Only set the visibility if the fragment View has been initialised.
+        if (view != null) {
+            view.setVisibility(visibility);
+        }
     }
 
     /**
@@ -124,48 +161,50 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
 
         if (transactions.size() > 0) {
             // There are transactions, show the category selector.
-            mCategoryCard.setVisibility(View.VISIBLE);
-            mNoTransactions.setVisibility(View.GONE);
+            updateViewVisibility(mCategoryCard, View.VISIBLE);
+            updateViewVisibility(mNoTransactions, View.GONE);
 
             // Update the LineChart to show all Transactions matching the Users chosen Category.
-            if (!mChosenCategory.isEmpty() && !Objects.equals(mChosenCategory, "")) {
-                mChartCard.setVisibility(View.VISIBLE);
+            if (mChosenCategory != null && !mChosenCategory.isEmpty() && !Objects.equals(mChosenCategory, "")) {
+                updateViewVisibility(mChartCard, View.VISIBLE);
 
                 mDataSet.addTransactions(transactions, mChosenCategory);
 
                 // The chosen category may have no Transactions.
                 if (mDataSet.getEntryCount() > 0) {
                     // Show the LineChart card and refresh the chart.
-                    mChart.setVisibility(View.VISIBLE);
-                    mNoTransactionsForCategory.setVisibility(View.GONE);
+                    updateViewVisibility(mChart, View.VISIBLE);
+                    updateViewVisibility(mNoTransactionsForCategory, View.GONE);
 
                     updateDataSets(true);
                 } else {
                     // The Category has no Transactions, hide the chart but show the helper text.
-                    mChart.setVisibility(View.GONE);
+                    updateViewVisibility(mChart, View.GONE);
 
                     // Set the text resource depending on if a date filter is being used or not.
-                    if (mPrefs.getBoolean(MainActivity.PREFS_FILTERED_BOOLEAN_KEY, false)) {
-                        mNoTransactionsForCategory.setText(getResources().getString(
-                                R.string.category_breakdown_no_transactions_for_category_filtered));
-                    } else {
-                        mNoTransactionsForCategory.setText(getResources().getString(
-                                R.string.category_breakdown_no_transactions_for_category));
+                    if (mNoTransactionsForCategory != null) {
+                        if (mPrefs.getBoolean(MainActivity.PREFS_FILTERED_BOOLEAN_KEY, false)) {
+                            mNoTransactionsForCategory.setText(getResources().getString(
+                                    R.string.category_breakdown_no_transactions_for_category_filtered));
+                        } else {
+                            mNoTransactionsForCategory.setText(getResources().getString(
+                                    R.string.category_breakdown_no_transactions_for_category));
+                        }
                     }
-                    mNoTransactionsForCategory.setVisibility(View.VISIBLE);
+                    updateViewVisibility(mNoTransactionsForCategory, View.VISIBLE);
 
                     updateDataSets(false);
                 }
             } else {
                 updateDataSets(false);
 
-                mChartCard.setVisibility(View.GONE);
+                updateViewVisibility(mChartCard, View.GONE);
             }
         } else {
             // Hide the Category and LineChart cards and show the no Transactions helper text.
-            mNoTransactions.setVisibility(View.VISIBLE);
-            mCategoryCard.setVisibility(View.GONE);
-            mChartCard.setVisibility(View.GONE);
+            updateViewVisibility(mNoTransactions, View.VISIBLE);
+            updateViewVisibility(mCategoryCard, View.GONE);
+            updateViewVisibility(mChartCard, View.GONE);
         }
     }
 
@@ -176,30 +215,73 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
      *              invalidated to redraw.
      */
     private void updateDataSets(boolean update) {
-        if (update) {
-            // The DataSet may have been cleared.
-            if (mChartData.getDataSetCount() > 0) {
-                mChartData.notifyDataChanged();
+        if (mChart != null) {
+            if (update) {
+                // The DataSet may have been cleared.
+                if (mChartData.getDataSetCount() > 0) {
+                    mChartData.notifyDataChanged();
+                } else {
+                    mChartData.addDataSet(mDataSet);
+                }
+
+                // Set the granularity of the x axis to match the difference between records to avoid
+                // duplicate date values in the x axis labels. This is done after updating to better
+                // handle live updating of the Category breakdown.
+                XAxis xAxis = mChart.getXAxis();
+                float valueSeparation = 1f;
+                if (mDataSet.getEntryCount() > 0) {
+                    valueSeparation = (mDataSet.getXMax() - mDataSet.getXMin()) / mDataSet.getEntryCount();
+                }
+                xAxis.setGranularity(valueSeparation);
+
+                // Set limits on the X and Y axis based upon the DataSet.
+                YAxis yAxis = mChart.getAxisLeft();
+                float yMax = mDataSet.getYMax();
+                float xMax = (float) Calendar.getInstance().getTimeInMillis();
+                addLimitLines(yAxis, xAxis, yMax, xMax);
+
+                // Update the chart data and invalidate to redraw.
+                mChart.notifyDataSetChanged();
+                mChart.invalidate();
             } else {
-                mChartData.addDataSet(mDataSet);
+                mChart.getData().clearValues();
             }
-
-            // Set the granularity of the x axis to match the difference between records to avoid
-            // duplicate date values in the x axis labels. This is done after updating to better
-            // handle live updating of the Category breakdown.
-            XAxis xAxis = mChart.getXAxis();
-            float valueSeparation = 1f;
-            if (mDataSet.getEntryCount() > 0) {
-                valueSeparation = (mDataSet.getXMax() - mDataSet.getXMin()) / mDataSet.getEntryCount();
-            }
-            xAxis.setGranularity(valueSeparation);
-
-            // Update the chart data and invalidate to redraw.
-            mChart.notifyDataSetChanged();
-            mChart.invalidate();
-        } else {
-            mChart.getData().clearValues();
         }
+    }
+
+    /**
+     * Build and configure a LimitLine object.
+     * @param limitValue: Float, the position of the LimitLine.
+     * @param label: String, the label for the LimitLine.
+     * @param position: LimitLabelPosition, the position of the label on the LimitLine.
+     * @return A LimitLine object.
+     */
+    private LimitLine buildLimitLine(float limitValue, String label, LimitLabelPosition position) {
+        LimitLine limitLine = new LimitLine(limitValue, label);
+        limitLine.setLineColor(mLimitColour);
+        limitLine.setLineWidth(1.5f);
+        limitLine.setTextSize(mValueTextSize);
+        limitLine.setLabelPosition(position);
+
+        return limitLine;
+    }
+
+    /**
+     * Add LimitLines to the X and Y axis.
+     * @param yAxis: The YAxis for the chart.
+     * @param xAxis: The XAxis for the chart.
+     * @param yMax: Float, the Y Max value.
+     * @param xMax: Float, the X Max value.
+     */
+    private void addLimitLines(YAxis yAxis, XAxis xAxis, float yMax, float xMax) {
+        LimitLine yLimit = buildLimitLine(yMax, String.valueOf(yMax), LimitLabelPosition.LEFT_TOP);
+        LimitLine xLimit = buildLimitLine(xMax, "Today", LimitLabelPosition.RIGHT_TOP);
+
+        yAxis.removeAllLimitLines();
+        yAxis.addLimitLine(yLimit);
+
+        xAxis.removeAllLimitLines();
+        xAxis.addLimitLine(xLimit);
     }
 
     /**
@@ -216,6 +298,8 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
 
         // Enable touch events and set the listener to show the SnackBar when a value is touched.
         chart.setTouchEnabled(true);
+        chart.setScaleEnabled(false);
+        chart.setPinchZoom(false);
         chart.setOnChartValueSelectedListener(this);
 
         // Configure the LineChart X Axis, moving to the bottom, adding padding for the labels and
@@ -230,14 +314,13 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
         yAxis.setAxisMinimum(0f);
 
         // Configure the CategoryBreakdownDataSet
-        int plotColour = ContextCompat.getColor(getContext(), R.color.colorPrimaryDark);
-        mDataSet.setColor(plotColour);
-        mDataSet.setLineWidth(2.5f);
-        mDataSet.setCircleColor(plotColour);
-        mDataSet.setDrawFilled(true);
-        mDataSet.setFillColor(plotColour);
-        mDataSet.setValueFormatter(new CategoryBreakdownValueFormatter());
-        mDataSet.setValueTextSize(12f);
+        dataSet.setColor(mPlotColour);
+        dataSet.setLineWidth(2.5f);
+        dataSet.setCircleColor(mPlotColour);
+        dataSet.setDrawFilled(true);
+        dataSet.setFillColor(mPlotColour);
+        dataSet.setValueFormatter(new CategoryBreakdownValueFormatter());
+        dataSet.setValueTextSize(mValueTextSize);
     }
 
     /**

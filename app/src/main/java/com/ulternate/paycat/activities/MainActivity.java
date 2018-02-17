@@ -181,6 +181,9 @@ public class MainActivity extends AppCompatActivity {
      * Fragments in the ViewPager.
      */
     public void clearTransactionFilter() {
+        // Edit the preferences to mark the list as no longer filtered.
+        mPrefs.edit().putBoolean(PREFS_FILTERED_BOOLEAN_KEY, false).apply();
+
         // Remove any observers for the filtered Transactions list.
         mTransactionViewModel.getFilteredTransactionsList(null, null).removeObservers(this);
 
@@ -192,9 +195,6 @@ public class MainActivity extends AppCompatActivity {
                         mViewPagerAdapter.updateFragments(transactions);
                     }
                 });
-
-        // Edit the preferences to mark the list as no longer filtered.
-        mPrefs.edit().putBoolean(PREFS_FILTERED_BOOLEAN_KEY, false).apply();
 
         // Invalidate the options menu to show the "Clear Filter" option now that a filter
         // has been applied.
