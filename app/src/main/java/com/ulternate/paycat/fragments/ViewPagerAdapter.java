@@ -4,6 +4,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
 
 import com.ulternate.paycat.data.Transaction;
 
@@ -14,6 +15,8 @@ import java.util.List;
  * FragmentPagerAdapter for the ViewPager.
  */
 public class ViewPagerAdapter extends FragmentPagerAdapter {
+
+    private static final String TAG = ViewPagerAdapter.class.getSimpleName();
 
     // Lists to store the Fragments and their titles.
     private final List<Fragment> mFragmentsList = new ArrayList<>();
@@ -74,7 +77,14 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
     public void updateFragments(List<Transaction> transactions) {
         for (int i = 0; i < this.getCount(); i++) {
             BaseTransactionFragment fragment = (BaseTransactionFragment) this.getItem(i);
-            fragment.updateAdapter(transactions);
+            if (fragment != null) {
+                try {
+                    fragment.updateAdapter(transactions);
+                } catch (Exception e) {
+                    Log.e(TAG, "Exception raised updating " + fragment.getClass().getSimpleName() + " fragment");
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }

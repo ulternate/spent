@@ -15,8 +15,8 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
 import android.support.v13.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -32,7 +32,9 @@ import android.view.View;
 import com.ulternate.paycat.R;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
+import com.ulternate.paycat.data.Utils;
 import com.ulternate.paycat.fragments.BreakdownFragment;
+import com.ulternate.paycat.fragments.CategoryBreakdownFragment;
 import com.ulternate.paycat.fragments.TransactionFragment;
 import com.ulternate.paycat.fragments.ViewPagerAdapter;
 import com.ulternate.paycat.settings.GeneralSettings;
@@ -46,11 +48,16 @@ import java.util.List;
 /**
  * Main activity for the application.
  */
+@SuppressLint("SimpleDateFormat")
 public class MainActivity extends AppCompatActivity {
 
     public static final String PREFS_FILTERED_BOOLEAN_KEY = "filtered";
     public static final String PREFS_DATE_FROM_LONG_KEY = "dateFrom";
     public static final String PREFS_DATE_TO_LONG_KEY = "dateTo";
+    public static final String PREFS_CUSTOM_CATEGORIES_ARRAY = "custom_categories_array";
+    public static final String PREFS_CHOSEN_CATEGORY_BREAKDOWN = "chosen_category";
+
+    public static BottomNavigationView mBottomNavigationView;
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
@@ -59,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private LifecycleOwner mLifecycleOwner;
     private TransactionViewModel mTransactionViewModel;
     private View mView;
+    private ViewPager mViewPager;
     private ViewPagerAdapter mViewPagerAdapter;
 
     private SharedPreferences mPrefs;
@@ -66,8 +74,8 @@ public class MainActivity extends AppCompatActivity {
     private Date mFromDate;
 
     // Date form used to format Date objects as desired.
-    @SuppressLint("SimpleDateFormat")
     public static final SimpleDateFormat TRANSACTION_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd h:mm a");
+    public static final SimpleDateFormat DATE_FORMAT_NO_TIME = new SimpleDateFormat("dd/MM/yyyy");
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,17 +90,19 @@ public class MainActivity extends AppCompatActivity {
         mLifecycleOwner = this;
 
         // Get the ViewPager, set the adapter and add the required fragments.
-        ViewPager viewPager = findViewById(R.id.viewpager);
+        mViewPager = findViewById(R.id.viewpager);
         mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
         // Add Transactions list fragment.
         mViewPagerAdapter.addFragment(new TransactionFragment(), getResources().getString(R.string.tab_transactions));
         // Add BreakdownItem fragment.
         mViewPagerAdapter.addFragment(new BreakdownFragment(), getResources().getString(R.string.tab_breakdown));
-        viewPager.setAdapter(mViewPagerAdapter);
+        // Add Category breakdown fragment.
+        mViewPagerAdapter.addFragment(new CategoryBreakdownFragment(), getResources().getString(R.string.tab_category_breakdown));
+        mViewPager.setAdapter(mViewPagerAdapter);
 
-        // Set up the TabLayout.
-        TabLayout tabLayout = findViewById(R.id.tabLayout);
-        tabLayout.setupWithViewPager(viewPager);
+        // Set up the BottomNavMenu.
+        mBottomNavigationView = findViewById(R.id.bottom_navigation);
+        mBottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationSelectedListener);
 
         // Prompt the user to enable the notification listener service if they haven't.
         if (!isNotificationServiceEnabled()) {
@@ -171,6 +181,9 @@ public class MainActivity extends AppCompatActivity {
      * Fragments in the ViewPager.
      */
     public void clearTransactionFilter() {
+        // Edit the preferences to mark the list as no longer filtered.
+        mPrefs.edit().putBoolean(PREFS_FILTERED_BOOLEAN_KEY, false).apply();
+
         // Remove any observers for the filtered Transactions list.
         mTransactionViewModel.getFilteredTransactionsList(null, null).removeObservers(this);
 
@@ -182,9 +195,6 @@ public class MainActivity extends AppCompatActivity {
                         mViewPagerAdapter.updateFragments(transactions);
                     }
                 });
-
-        // Edit the preferences to mark the list as no longer filtered.
-        mPrefs.edit().putBoolean(PREFS_FILTERED_BOOLEAN_KEY, false).apply();
 
         // Invalidate the options menu to show the "Clear Filter" option now that a filter
         // has been applied.
@@ -278,6 +288,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationSelectedListener =
+            new BottomNavigationView.OnNavigationItemSelectedListener() {
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_transactions:
+                    mViewPager.setCurrentItem(0);
+                    break;
+                case R.id.action_breakdown:
+                    mViewPager.setCurrentItem(1);
+                    break;
+                case R.id.action_category_breakdown:
+                    mViewPager.setCurrentItem(2);
+                    break;
+            }
+            return true;
+        }
+    };
 
     /**
      * Check if the notification service is enabled.
@@ -397,9 +426,10 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     // Alert the user that the location of the transaction won't be saved when a
                     // notification is received.
-                    Snackbar.make(mView,
+                    Snackbar locationSnackbar = Snackbar.make(mView,
                             getResources().getString(R.string.location_permission_denied),
-                            Snackbar.LENGTH_SHORT).show();
+                            Snackbar.LENGTH_SHORT);
+                    Utils.showSnackbarAboveBottomNavMenu(locationSnackbar);
                 }
             }
         }

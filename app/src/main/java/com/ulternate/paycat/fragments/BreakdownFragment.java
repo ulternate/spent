@@ -27,6 +27,8 @@ import java.util.List;
  */
 public class BreakdownFragment extends BaseTransactionFragment {
 
+    private static final String DATA_SET_LABEL = "Categories";
+
     private BreakdownAdapter mBreakdownAdapter;
     private PieChart mPieChart;
     private PieData mPieData;
@@ -36,6 +38,25 @@ public class BreakdownFragment extends BaseTransactionFragment {
         // Empty constructor.
     }
 
+    /**
+     * Initialise the Adapters and DataSets and other fields required by the Fragment.
+     * @param savedInstanceState: If the activity is being re-initialized after previously being
+     *                          shut down then this Bundle contains the data it most recently
+     *                          supplied in onSaveInstanceState. Note: Otherwise it is null.
+     */
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Set the BreakdownAdapter.
+        mBreakdownAdapter = new BreakdownAdapter(new ArrayList<Transaction>(), getContext());
+
+        // Set the DataSet and PieData.
+        mDataSet = new BreakdownDataSet(new ArrayList<PieEntry>(), "Categories");
+        mPieData = new PieData(mDataSet);
+
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -43,11 +64,9 @@ public class BreakdownFragment extends BaseTransactionFragment {
 
         // Find and configure the PieChart and it's DataSet.
         mPieChart = rootView.findViewById(R.id.breakdownChart);
-        mDataSet = new BreakdownDataSet(new ArrayList<PieEntry>(), "Categories");
         configureBreakdownChart(mPieChart, mDataSet);
 
         // Set our DataSet holder and assign it to the PieChart.
-        mPieData = new PieData(mDataSet);
         mPieChart.setData(mPieData);
         mPieChart.invalidate();
 
@@ -59,7 +78,6 @@ public class BreakdownFragment extends BaseTransactionFragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // Specify the adapter for the RecyclerView.
-        mBreakdownAdapter = new BreakdownAdapter(new ArrayList<Transaction>(), getContext());
         mRecyclerView.setAdapter(mBreakdownAdapter);
 
         // Get the list of Transactions, using any saved date filter, or all Transactions.

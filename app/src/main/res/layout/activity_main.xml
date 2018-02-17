@@ -16,21 +16,26 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimaryDark"
-            app:popupTheme="@style/AppTheme.PopupOverlay"/>
-
-        <android.support.design.widget.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-        </android.support.design.widget.TabLayout>
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.view.ViewPager
+    <com.ulternate.paycat.adapters.NonSwipeableViewPager
         android:id="@+id/viewpager"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+        android:layout_height="match_parent"
+        android:layout_marginBottom="56dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <android.support.design.widget.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom"
+        app:itemBackground="@color/colorPrimary"
+        app:itemIconTint="@color/mdtp_white"
+        app:itemTextColor="@color/mdtp_white"
+        app:menu="@menu/bottom_navigation_main" />
 
 </android.support.design.widget.CoordinatorLayout>
