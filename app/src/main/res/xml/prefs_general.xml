@@ -1,8 +1,18 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="match_category"
-        android:summary="@string/pref_match_category_summary"
-        android:title="@string/pref_match_category_title" />
+    <PreferenceCategory
+        android:layout="@layout/preferences_category"
+        android:title="@string/pref_category_match_transactions">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/pref_match_category_key"
+            android:summary="@string/pref_match_category_summary"
+            android:title="@string/pref_match_category_title" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="@string/pref_dismiss_notification_key"
+            android:summary="@string/pref_dismiss_notification_summary"
+            android:title="@string/pref_dismiss_notification_title" />
+    </PreferenceCategory>
 </PreferenceScreen>
