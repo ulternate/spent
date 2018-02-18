@@ -277,6 +277,11 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * Filter Transactions between two Dates, updating all Fragment adapters.
+     * @param from: Date to filter from.
+     * @param to: Date to filter to.
+     */
     private void filterTransactions(Date from, Date to) {
         // Remove any observers on the full Transactions list and observe the filtered list.
         // Update all Fragments in the ViewPager with the filtered list.
@@ -289,6 +294,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Handle navigation item selection in the BottomNavigationView.
+     */
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationSelectedListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override
