@@ -17,6 +17,7 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.support.v4.content.ContextCompat;
 
+import com.ulternate.paycat.R;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.tasks.AddTransactionAsyncTask;
 
@@ -112,15 +113,25 @@ public class TransactionNotificationListener extends NotificationListenerService
 
                 // Check if the user has requested to attempt to match categories from past transactions.
                 SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                isMatchingCategoriesEnabled = mPrefs.getBoolean("match_category", false);
+                isMatchingCategoriesEnabled = mPrefs.getBoolean(
+                        getResources().getString(R.string.pref_match_category_key), false);
+
+                boolean notificationHandled = false;
 
                 switch (notification_code) {
                     case ANDROID_PAY_CODE:
-                        handleAndroidPayNotification(title, content, sbn.getPostTime());
+                        notificationHandled = handleAndroidPayNotification(title, content, sbn.getPostTime());
                         break;
                     case PAYPAL_CODE:
-                        handlePaypalNotification(content, sbn.getPostTime());
+                        notificationHandled = handlePaypalNotification(content, sbn.getPostTime());
                         break;
+                }
+
+                // Try and cancel the notification if the user has requested it in the settings.
+                if (mPrefs.getBoolean(getResources().getString(R.string.pref_dismiss_notification_key), false)) {
+                    if (notificationHandled) {
+                        cancelNotification(sbn.getKey());
+                    }
                 }
             }
         }
@@ -158,11 +169,13 @@ public class TransactionNotificationListener extends NotificationListenerService
      *               matching is used to get the transaction amount.
      * @param postTime: long, represents the post time from the StatusBarNotification, used to set
      *                the transaction date.
+     * @return Boolean, true if the notification content could be parsed and a Transaction adding
+     *         task was started, otherwise false.
      *
      * If the notification represents a transaction, then a Transaction object is created and added
      * to the database asynchronously.
      */
-    private void handleAndroidPayNotification(String title, String content, Long postTime) {
+    private boolean handleAndroidPayNotification(String title, String content, Long postTime) {
         Pattern pattern = Pattern.compile(AMOUNT_PATTERN_REGEX);
         Matcher matcher = pattern.matcher(content);
 
@@ -181,7 +194,10 @@ public class TransactionNotificationListener extends NotificationListenerService
                     (float) transactionLocation.getLatitude(),
                     (float) transactionLocation.getLongitude());
             new AddTransactionAsyncTask(getApplicationContext(), isMatchingCategoriesEnabled).execute(transaction);
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -193,11 +209,13 @@ public class TransactionNotificationListener extends NotificationListenerService
      *               transaction amount and merchant name.
      * @param postTime: long, represents the post time from the StatusBarNotification, used to set
      *                the transaction date.
+     * @return Boolean, true if the notification content could be parsed and a Transaction adding
+     *         task was started, otherwise false.
      *
      * If the notification represents a transaction, then a Transaction object is created and added
      * to the database asynchronously.
      */
-    private void handlePaypalNotification(String content, long postTime) {
+    private boolean handlePaypalNotification(String content, long postTime) {
         Pattern pattern = Pattern.compile(PAYPAL_PATTERN_REGEX);
         Matcher matcher = pattern.matcher(content);
 
@@ -217,7 +235,11 @@ public class TransactionNotificationListener extends NotificationListenerService
                         (float) transactionLocation.getLatitude(),
                         (float) transactionLocation.getLongitude());
                 new AddTransactionAsyncTask(getApplicationContext(), isMatchingCategoriesEnabled).execute(transaction);
+
+                return true;
             }
         }
+
+        return false;
     }
 }
