@@ -1,9 +1,9 @@
-# Paycat
+# Spent
 Categorise payments for budgeting and spend tracking.
 
 ## What it does?
 
-**Paycat** will listen for notifications from payments on your 
+**Spent** will listen for notifications from payments on your 
 Android device using services like Android Pay or PayPal. Each 
 notification will be captured and categorised. This will allow the 
 following:
