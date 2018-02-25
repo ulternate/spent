@@ -32,12 +32,12 @@ import android.view.View;
 import com.ulternate.paycat.R;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.TransactionViewModel;
-import com.ulternate.paycat.data.Utils;
 import com.ulternate.paycat.fragments.BreakdownFragment;
 import com.ulternate.paycat.fragments.CategoryBreakdownFragment;
 import com.ulternate.paycat.fragments.TransactionFragment;
 import com.ulternate.paycat.fragments.ViewPagerAdapter;
 import com.ulternate.paycat.settings.GeneralSettings;
+import com.ulternate.paycat.tasks.AddTransactionAsyncTask;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.text.SimpleDateFormat;
@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String PREFS_CUSTOM_CATEGORIES_ARRAY = "custom_categories_array";
     public static final String PREFS_CHOSEN_CATEGORY_BREAKDOWN = "chosen_category";
 
+    public static final int DETAIL_ACTIVITY_CODE = 1;
+
     public static BottomNavigationView mBottomNavigationView;
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
@@ -72,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences mPrefs;
     private boolean mSelectingFrom = true;
     private Date mFromDate;
+    private Transaction mDeletedTransaction;
 
     // Date form used to format Date objects as desired.
     public static final SimpleDateFormat TRANSACTION_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd h:mm a");
@@ -434,12 +437,49 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     // Alert the user that the location of the transaction won't be saved when a
                     // notification is received.
-                    Snackbar locationSnackbar = Snackbar.make(mView,
+                    Snackbar.make(mView,
                             getResources().getString(R.string.location_permission_denied),
-                            Snackbar.LENGTH_SHORT);
-                    Utils.showSnackbarAboveBottomNavMenu(locationSnackbar);
+                            Snackbar.LENGTH_SHORT).show();
                 }
             }
         }
     }
+
+    /**
+     * Handle the result from any activity started for a result.
+     * @param requestCode: The request code used when the activity was started, int.
+     * @param resultCode: The result code set by the activity prior to being finished, int.
+     * @param data: The return Intent containing any data sent back by the activity.
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == DETAIL_ACTIVITY_CODE) {
+            if (resultCode == RESULT_OK) {
+                // Get the transaction that was deleted.
+                mDeletedTransaction = (Transaction) data.getSerializableExtra("transaction");
+                // Show a Snackbar, mentioning which Transaction was deleted and providing the
+                // option to undo the deletion of the Transaction.
+                String msg = getResources().getString(
+                        R.string.delete_transaction_success_message, mDeletedTransaction.description);
+                Snackbar deletedSnackbar = Snackbar.make(mView, msg, Snackbar.LENGTH_LONG);
+                deletedSnackbar.setAction(getResources().getString(R.string.undo), mUndoDeletionListener);
+                deletedSnackbar.show();
+            }
+        }
+
+        // Hand off back to any fragments that started an activity for a result not covered here.
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    /**
+     * OnClickListener used by the Snackbar shown when a Transaction is deleted to enable the user
+     * to undo the deletion of that Transaction.
+     */
+    private View.OnClickListener mUndoDeletionListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // Re-add the deleted transaction back to the database.
+            new AddTransactionAsyncTask(getApplicationContext(), false).execute(mDeletedTransaction);
+        }
+    };
 }
