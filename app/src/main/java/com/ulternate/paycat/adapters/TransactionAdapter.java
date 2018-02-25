@@ -14,12 +14,16 @@ import com.ulternate.paycat.data.Transaction;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * RecyclerView adapter to show transactions in the RecyclerView.
  */
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.ViewHolder> {
+
+    // Default list item resource ID.
+    private int mListItemResourceId = R.layout.transaction_item;
 
     // Dataset for the Adapter.
     private List<Transaction> mTransactionsList;
@@ -38,12 +42,43 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     }
 
     /**
+     * Constructor to set the dataset for the Adapter.
+     * @param listItemResourceId: Int, representing the ID of the view resource for the list items.
+     *                          This adapter assumes that the views in the layout have the same IDs.
+     * @param transactions: A list of Transaction objects.
+     * @param listener: A TransactionOnClickListener.
+     */
+    public TransactionAdapter(int listItemResourceId, List<Transaction> transactions, TransactionOnClickListener listener) {
+        this.mListItemResourceId = listItemResourceId;
+        this.mTransactionsList = transactions;
+        this.mListener = listener;
+    }
+
+    /**
      * Add a List of transactions to the dataset.
      * @param transactions: A list of Transaction objects.
      */
     public void addTransactions(List<Transaction> transactions) {
         this.mTransactionsList.clear();
         this.mTransactionsList.addAll(transactions);
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Add a List of transactions to the dataset filtered by category.
+     * @param transactions: A list of Transaction objects.
+     * @param category: The category that is currently filtered.
+     */
+    public void addTransactionsForCategory(List<Transaction> transactions, String category) {
+        this.mTransactionsList.clear();
+
+        // Get only those Transactions matching the chosen Category.
+        for (Transaction transaction : transactions) {
+            if (Objects.equals(transaction.category, category)) {
+                this.mTransactionsList.add(transaction);
+            }
+        }
+
         notifyDataSetChanged();
     }
 
@@ -57,7 +92,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // Create a new view using the Transaction Item CardView layout.
         CardView v = (CardView) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.transaction_item, parent, false);
+                .inflate(mListItemResourceId, parent, false);
 
         return new ViewHolder(v, mListener);
     }

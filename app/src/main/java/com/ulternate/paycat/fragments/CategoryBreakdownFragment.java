@@ -1,5 +1,6 @@
 package com.ulternate.paycat.fragments;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -8,6 +9,8 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,10 +28,14 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.ulternate.paycat.R;
+import com.ulternate.paycat.activities.DetailActivity;
 import com.ulternate.paycat.activities.MainActivity;
 import com.ulternate.paycat.adapters.CategoryBreakdownAxisFormatter;
 import com.ulternate.paycat.adapters.CategoryBreakdownDataSet;
 import com.ulternate.paycat.adapters.CategoryBreakdownValueFormatter;
+import com.ulternate.paycat.adapters.TransactionAdapter;
+import com.ulternate.paycat.adapters.TransactionDividerItemDecoration;
+import com.ulternate.paycat.adapters.TransactionOnClickListener;
 import com.ulternate.paycat.data.Transaction;
 import com.ulternate.paycat.data.Utils;
 
@@ -45,12 +52,14 @@ import fr.ganfra.materialspinner.MaterialSpinner;
 public class CategoryBreakdownFragment extends BaseTransactionFragment implements OnChartValueSelectedListener {
 
     // View fields.
+    private View mView;
     private TextView mNoTransactions;
     private TextView mNoTransactionsForCategory;
     private CardView mChartCard;
     private CardView mCategoryCard;
 
     // Helper fields.
+    private TransactionAdapter mRecyclerViewAdapter;
     private List<Transaction> mTransactions = new ArrayList<>();
     private String mChosenCategory;
     private SharedPreferences mPrefs;
@@ -90,12 +99,15 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
         // Get the default plot colours.
         mPlotColour = ContextCompat.getColor(getContext(), R.color.colorPrimaryDark);
         mLimitColour = ContextCompat.getColor(getContext(), R.color.colorAccentRed);
+
+        // Initialise the RecyclerView adapter.
+        mRecyclerViewAdapter = new TransactionAdapter(R.layout.transaction_item_small, new ArrayList<Transaction>(), mTransactionOnClickListener);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View mView = inflater.inflate(R.layout.fragment_category_breakdown, container, false);
+        mView = inflater.inflate(R.layout.fragment_category_breakdown, container, false);
 
         // Get the filtering views.
         mCategoryCard = mView.findViewById(R.id.categoryBreakdownSelectionCard);
@@ -131,6 +143,24 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
         if (mCategories.contains(mChosenCategory)) {
             mCategorySpinner.setSelection(mCategories.indexOf(mChosenCategory) + 1);
         }
+
+        // Get the Transactions RecyclerView.
+        RecyclerView mRecyclerView = mView.findViewById(R.id.categoryBreakdownList);
+        // Set the size to fixed as changes in layout don't change the size of
+        // the RecyclerView.
+        mRecyclerView.setHasFixedSize(true);
+
+        // Get the layout manager for the RecyclerView.
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        // Specify the adapter for the RecyclerView.
+        mRecyclerView.setAdapter(mRecyclerViewAdapter);
+
+        // Assign a custom DividerItemDecoration to set the margins between list items in the
+        // RecyclerView.
+        TransactionDividerItemDecoration dividerItemDecoration = new TransactionDividerItemDecoration(getActivity());
+        mRecyclerView.addItemDecoration(dividerItemDecoration);
 
         // Get the list of Transactions, using any saved date filter, or all Transactions.
         getTransactions();
@@ -169,6 +199,7 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
                 updateViewVisibility(mChartCard, View.VISIBLE);
 
                 mDataSet.addTransactions(transactions, mChosenCategory);
+                mRecyclerViewAdapter.addTransactionsForCategory(transactions, mChosenCategory);
 
                 // The chosen category may have no Transactions.
                 if (mDataSet.getEntryCount() > 0) {
@@ -345,6 +376,24 @@ public class CategoryBreakdownFragment extends BaseTransactionFragment implement
         @Override
         public void onNothingSelected(AdapterView<?> parent) {
             // Do Nothing.
+        }
+    };
+
+    /**
+     * OnClickListener to start the DetailActivity when a Transaction is clicked on.
+     */
+    private TransactionOnClickListener mTransactionOnClickListener = new TransactionOnClickListener() {
+        @Override
+        public void onClick(View view, int position) {
+            Intent detailIntent = new Intent(getContext(), DetailActivity.class);
+
+            // Send the Transaction object to the activity.
+            Transaction clickedTransaction = mRecyclerViewAdapter.getTransaction(position);
+            detailIntent.putExtra("transaction", clickedTransaction);
+
+            // Start the detail activity for a result, enabling us to undo the deletion action that
+            // finishes this activity.
+            getActivity().startActivityForResult(detailIntent, MainActivity.DETAIL_ACTIVITY_CODE);
         }
     };
 
