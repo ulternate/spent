@@ -1,3 +1,5 @@
+### Not maintained anymore, feel free to fork/clone but I'm unlikely to make changes to this going forward.
+
 # Spent
 Categorise payments for budgeting and spend tracking.
 
@@ -23,6 +25,10 @@ The following applications/notifications are supported:
 * PayPal. 
   * Push Notifications after a payment must be enabled in the PayPal
   application.
+  
+This was true in 2017, and really only for transactions made in AUD.
+It is likely that the notification content has changed enough so that
+the REGEX doesn't match and no transaction information can be parsed.
 
 ### Adding support for new applications.
 
@@ -76,7 +82,3 @@ All handling of notification content is done in the
 **No** information is sent to third party servers. Location data can
 be disabled if you don't wish to record the location of transactions.
 Disabling location will not stop transactions being saved.
-
-## Contact.
-
-Please create issues on this repository.
